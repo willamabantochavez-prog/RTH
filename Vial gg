@@ -511,7 +511,158 @@ local function makeToggleRow(label)
         Font=Enum.Font.GothamBold,
         TextSize=8,
         AutoButtonColor=false,
-        BorderSizePixel=0 not minimized
+        BorderSizePixel=0,
+        ZIndex=8,
+    }, r)
+    corner(btn, 6)
+    mstroke(btn, C.border, 0.55, 1)
+
+    return r, btn
+end
+
+local function setToggle(btn, on)
+    pcall(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = on and C.greenBg or C.surface,
+        }):Play()
+    end)
+    btn.Text = on and "ON" or "OFF"
+    btn.TextColor3 = on and C.green or C.red
+    for _, ch in ipairs(btn:GetChildren()) do
+        if ch:IsA("UIStroke") then
+            pcall(function()
+                TweenService:Create(ch, TweenInfo.new(0.15), {
+                    Color = on and C.green or C.border,
+                }):Play()
+            end)
+        end
+    end
+end
+
+local R_Type, TypeTgl = makeToggleRow("Auto Type")
+local R_Submit, SubmitTgl = makeToggleRow("Auto Submit")
+
+-- ═══════════════════════════════
+-- COUNTER ROW
+-- ═══════════════════════════════
+rowIdx = rowIdx + 1
+local CTR_Y = ROW_Y0 + (rowIdx - 1) * (ROW_H + ROW_GAP)
+
+local CtrRow = new("Frame", {
+    Size=UDim2.new(1, -PAD*2, 0, ROW_H),
+    Position=UDim2.new(0, PAD, 0, CTR_Y),
+    BackgroundColor3=C.card,
+    BackgroundTransparency=0.12,
+    BorderSizePixel=0,
+    ZIndex=6,
+}, Content)
+corner(CtrRow, 8)
+mstroke(CtrRow, C.border, 0.65, 1)
+
+new("TextLabel", {
+    Size=UDim2.new(0.5, 0, 1, 0),
+    Position=UDim2.new(0, 14, 0, 0),
+    BackgroundTransparency=1,
+    Text="Submit After",
+    TextColor3=C.text,
+    Font=Enum.Font.GothamMedium,
+    TextSize=10,
+    TextXAlignment=Enum.TextXAlignment.Left,
+    ZIndex=7,
+}, CtrRow)
+
+local CtrBox = new("Frame", {
+    Size=UDim2.new(0, 74, 0, 20),
+    Position=UDim2.new(1, -86, 0.5, -10),
+    BackgroundColor3=C.surface,
+    BackgroundTransparency=0.05,
+    BorderSizePixel=0,
+    ZIndex=8,
+}, CtrRow)
+corner(CtrBox, 6)
+mstroke(CtrBox, C.border, 0.55, 1)
+
+local CtrMin = new("TextButton", {
+    Size=UDim2.new(0, 20, 0, 18),
+    Position=UDim2.new(0, 2, 0, 1),
+    BackgroundColor3=C.elevated,
+    BackgroundTransparency=0.3,
+    Text="−",
+    TextColor3=C.textSec,
+    Font=Enum.Font.GothamBold,
+    TextSize=12,
+    AutoButtonColor=false,
+    BorderSizePixel=0,
+    ZIndex=9,
+}, CtrBox)
+corner(CtrMin, 4)
+
+local CtrLbl = new("TextLabel", {
+    Size=UDim2.new(0, 24, 1, 0),
+    Position=UDim2.new(0, 25, 0, 0),
+    BackgroundTransparency=1,
+    Text="1",
+    TextColor3=C.text,
+    Font=Enum.Font.GothamBold,
+    TextSize=10,
+    ZIndex=9,
+}, CtrBox)
+
+local CtrPlus = new("TextButton", {
+    Size=UDim2.new(0, 20, 0, 18),
+    Position=UDim2.new(0, 52, 0, 1),
+    BackgroundColor3=C.elevated,
+    BackgroundTransparency=0.3,
+    Text="+",
+    TextColor3=C.textSec,
+    Font=Enum.Font.GothamBold,
+    TextSize=12,
+    AutoButtonColor=false,
+    BorderSizePixel=0,
+    ZIndex=9,
+}, CtrBox)
+corner(CtrPlus, 4)
+
+-- Auto Copy row
+local R_Copy, CopyTgl = makeToggleRow("Auto Copy")
+
+-- ═══════════════════════════════
+-- FOOTER
+-- ═══════════════════════════════
+local FT_Y = ROW_Y0 + rowIdx * (ROW_H + ROW_GAP) + 6
+
+new("Frame", {
+    Size=UDim2.new(1, -PAD*2, 0, 1),
+    Position=UDim2.new(0, PAD, 0, FT_Y - 3),
+    BackgroundColor3=C.divider,
+    BackgroundTransparency=0.35,
+    BorderSizePixel=0,
+    ZIndex=5,
+}, Content)
+
+new("TextLabel", {
+    Size=UDim2.new(1, -PAD*2, 0, 14),
+    Position=UDim2.new(0, PAD, 0, FT_Y + 1),
+    BackgroundTransparency=1,
+    Text="Vail  ·  by hskery50  ·  discord.gg/PGYSEVHV72",
+    TextColor3=C.textMut,
+    Font=Enum.Font.GothamMedium,
+    TextSize=7,
+    TextXAlignment=Enum.TextXAlignment.Center,
+    ZIndex=6,
+}, Content)
+
+-- ═══════════════════════════════
+-- MINIMIZE
+-- ═══════════════════════════════
+local minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    TweenService:Create(Window, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, WIN_W, 0, minimized and HDR_H + 2 or WIN_H)
+    }):Play()
+    MinBtn.Text = minimized and "+" or "−"
+    AccentLine.Visible = not minimized
 end)
 
 -- ═══════════════════════════════
@@ -1000,7 +1151,266 @@ local function findSubmitButton(box)
     return btns[1]
 end
 
-local getupvalues = (debug and debug.getupvalues) or get
+local getupvalues = (debug and debug.getupvalues) or getupvalues
+local getconns = getconnections or (debug and debug.getconnections)
+local setupv = (debug and debug.setupvalue) or setupvalue
+
+local function clickButton(btn)
+    if not btn then return false end
+    local ok = false
+    local methods = {
+        function() btn.MouseButton1Click:Fire() end,
+        function() btn.Activated:Fire() end,
+    }
+    if typeof(firesignal) == "function" then
+        table.insert(methods, function() firesignal(btn.MouseButton1Click) end)
+        table.insert(methods, function() firesignal(btn.Activated) end)
+    end
+    if typeof(getconns) == "function" then
+        table.insert(methods, function()
+            local s, c = pcall(getconns, btn.MouseButton1Click)
+            if s and type(c) == "table" then
+                for _, x in ipairs(c) do pcall(function() x:Fire() end) end
+            end
+            local s2, c2 = pcall(getconns, btn.Activated)
+            if s2 and type(c2) == "table" then
+                for _, x in ipairs(c2) do pcall(function() x:Fire() end) end
+            end
+        end)
+    end
+    if typeof(fireclick) == "function" then
+        table.insert(methods, function() fireclick(btn) end)
+    end
+    for _, fn in ipairs(methods) do
+        ok = ok or pcall(fn)
+    end
+    return ok
+end
+
+local function fireBoxFocusLost(box)
+    if not box then return false end
+    local fired = false
+    if typeof(firesignal) == "function" then
+        fired = fired or pcall(firesignal, box.FocusLost, true)
+    end
+    if typeof(getconns) == "function" then
+        local s, c = pcall(getconns, box.FocusLost)
+        if s and type(c) == "table" then
+            for _, x in ipairs(c) do
+                local fn
+                pcall(function() fn = x.Function end)
+                if fn and typeof(getupvalues) == "function" and typeof(setupv) == "function" then
+                    local u, ups = pcall(getupvalues, fn)
+                    if u and type(ups) == "table" then
+                        for i, v in pairs(ups) do
+                            if type(v) == "boolean" and v == true then
+                                pcall(setupv, fn, i, false)
+                            end
+                        end
+                    end
+                end
+                fired = fired or pcall(function()
+                    if x.Enabled ~= false then x:Fire(true) end
+                end)
+            end
+        end
+    end
+    return fired
+end
+
+local function processCode(code)
+    if not code or code == "" then return end
+    runtime.lastCode = code
+
+    if runtime.autoCopy then
+        pcall(function()
+            if setclipboard then setclipboard(code)
+            elseif toclipboard then toclipboard(code) end
+        end)
+    end
+
+    if runtime.autoType then
+        local box = findCodeBox()
+        if not box then
+            consoleLog('<font color="#e6505f">No code box</font>')
+            return
+        end
+        pcall(function() box.Text = code end)
+        fireBoxFocusLost(box)
+        consoleLog('<font color="#9ba5ff">Typed: ' .. code .. '</font>')
+        if runtime.autoSubmit then
+            task.wait(0.15)
+            local btn = findSubmitButton(box)
+            if btn then
+                clickButton(btn)
+                consoleLog('<font color="#55d282">Submitted: ' .. code .. '</font>')
+            else
+                consoleLog('<font color="#e6505f">No submit button</font>')
+            end
+        end
+    elseif runtime.autoSubmit then
+        local box = findCodeBox()
+        local btn = box and findSubmitButton(box)
+        if btn then
+            clickButton(btn)
+            consoleLog('<font color="#55d282">Submitted: ' .. code .. '</font>')
+        else
+            consoleLog('<font color="#e6505f">No submit found</font>')
+        end
+    end
+
+    if runtime.autoCopy then
+        consoleLog('<font color="#55d282">Copied: ' .. code .. '</font>')
+    end
+end
+
+-- ═══════════════════════════════
+-- NOTIFICATION LISTENER
+-- ═══════════════════════════════
+local function resolveNotifyRemote()
+    if runtime.notifyRemote and runtime.notifyRemote.Parent then return runtime.notifyRemote end
+    local cands = {}
+    pcall(function()
+        for _, d in ipairs(ReplicatedStorage:GetDescendants()) do
+            if d:IsA("RemoteEvent") then
+                local n = d.Name:lower()
+                if n:find("notif") or n:find("announce") or n:find("broadcast")
+                or n:find("global") or n:find("message") or n:find("chat") then
+                    table.insert(cands, d)
+                end
+            end
+        end
+    end)
+    if #cands > 0 then
+        runtime.notifyRemote = cands[1]
+        return cands[1]
+    end
+    return nil
+end
+
+local function stripRich(t)
+    return type(t) == "string" and (t:gsub("<[^>]->", "")) or tostring(t)
+end
+
+local function tokenize(t)
+    local w = {}
+    for word in t:gmatch("[%w_]+") do w[#w + 1] = word end
+    return w
+end
+
+local function onAnnouncement(...)
+    if not runtime.enabled then return end
+    local text = stripRich(tostring((...) or "")):match("^%s*(.-)%s*$") or ""
+    if text == "" or text:find("%s") then return end
+    if runtime.seen[text] then return end
+    runtime.seen[text] = true
+    task.delay(1.25, function() runtime.seen[text] = nil end)
+
+    for _, w in ipairs(tokenize(text)) do
+        table.insert(runtime.capturedParts, w)
+    end
+    local cnt = #runtime.capturedParts
+    local joined = table.concat(runtime.capturedParts)
+
+    consoleLog(string.format(
+        '<font color="#9ba5ff">%d/%d</font> <font color="#6b7099">[%s]</font>',
+        cnt, runtime.submitAfter, joined
+    ))
+
+    if cnt >= runtime.submitAfter then
+        runtime.lastCode = joined
+        runtime.capturedParts = {}
+        consoleLog('<font color="#9ba5ff">Code: ' .. joined .. '</font>')
+        processCode(joined)
+    end
+end
+
+local function startNotifListener()
+    if runtime.notifConn then return end
+    local r = resolveNotifyRemote()
+    if r then
+        runtime.notifConn = r.OnClientEvent:Connect(function(...)
+            pcall(onAnnouncement, ...)
+        end)
+    end
+end
+
+local function stopNotifListener()
+    if runtime.notifConn then
+        disconnect(runtime.notifConn)
+        runtime.notifConn = nil
+    end
+end
+
+local function toggleEnabled()
+    runtime.enabled = not runtime.enabled
+    syncStartVisual()
+    if runtime.enabled then
+        startNotifListener()
+        consoleLog('<font color="#55d282">Listening for codes</font>')
+    else
+        stopNotifListener()
+        consoleLog('<font color="#e6505f">Stopped</font>')
+    end
+end
+
+-- ═══════════════════════════════
+-- CONNECTIONS
+-- ═══════════════════════════════
+StartBtn.MouseButton1Click:Connect(toggleEnabled)
+ActionStartBtn.MouseButton1Click:Connect(toggleEnabled)
+
+TypeTgl.MouseButton1Click:Connect(function()
+    runtime.autoType = not runtime.autoType
+    setToggle(TypeTgl, runtime.autoType)
+end)
+
+SubmitTgl.MouseButton1Click:Connect(function()
+    runtime.autoSubmit = not runtime.autoSubmit
+    setToggle(SubmitTgl, runtime.autoSubmit)
+end)
+
+CopyTgl.MouseButton1Click:Connect(function()
+    runtime.autoCopy = not runtime.autoCopy
+    setToggle(CopyTgl, runtime.autoCopy)
+end)
+
+CtrMin.MouseButton1Click:Connect(function()
+    runtime.submitAfter = math.clamp(runtime.submitAfter - 1, 1, 10)
+    CtrLbl.Text = tostring(runtime.submitAfter)
+    runtime.capturedParts = {}
+end)
+
+CtrPlus.MouseButton1Click:Connect(function()
+    runtime.submitAfter = math.clamp(runtime.submitAfter + 1, 1, 10)
+    CtrLbl.Text = tostring(runtime.submitAfter)
+    runtime.capturedParts = {}
+end)
+
+ClearBtn.MouseButton1Click:Connect(function()
+    consoleLog("")
+end)
+
+RedeemBtn.MouseButton1Click:Connect(function()
+    local code = runtime.lastCode
+    if (not code or code == "") and #runtime.capturedParts > 0 then
+        code = table.concat(runtime.capturedParts)
+    end
+    if code and code ~= "" then
+        runtime.lastCode = code
+        processCode(code)
+    else
+        consoleLog('<font color="#6b7099">No code captured</font>')
+    end
+end)
+
+-- keybind
+connect(UserInputService.InputBegan, function(input, gpe)
+    if gpe then return end
+    if runtime.listeningKey then
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            runtime.snipeKey = input.KeyCode
+            runtime.listeningKey = false
         end
         return
     end
