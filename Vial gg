@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- VAIL — Code Sniper v1.2
 -- By: hskery50
--- discord.gg/PGYSEVHV72
+-- https://dc.gg/vail.vs
 -- ═══════════════════════════════════════════════════════════════════
 
 local Players           = game:GetService("Players")
@@ -606,7 +606,7 @@ new("TextLabel", {
     Size=UDim2.new(1, -PAD*2, 0, 14),
     Position=UDim2.new(0, PAD, 0, FT_Y + 1),
     BackgroundTransparency=1,
-    Text="Vail  |  by hskery50  |  discord.gg/PGYSEVHV72",
+    Text="|  by hskery50  | Discord - dc.gg/vail.vs",
     TextColor3=C.textMut,
     Font=Enum.Font.GothamMedium,
     TextSize=7,
@@ -703,7 +703,7 @@ local function createHeadDisplay()
     new("TextLabel", {
         Size=UDim2.new(1, 0, 1, 0),
         BackgroundTransparency=1,
-        Text="Vail",
+        Text="dc.gg/vail.vs",
         TextColor3=C.accent,
         Font=Enum.Font.GothamBold,
         TextScaled=true,
