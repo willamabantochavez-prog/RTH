@@ -14,11 +14,21 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LP = Players.LocalPlayer
 local playerGui = LP:WaitForChild("PlayerGui")
 
-local environment = (getgenv and getgenv()) or _G
+local environment
+do
+    local ok, result = pcall(function()
+        if getgenv then return getgenv() end
+        return nil
+    end)
+    environment = (ok and result) or _G
+end
+
 local RUNTIME_KEY = "__VAIL_v12"
-local previous = environment[RUNTIME_KEY]
-if type(previous) == "table" and type(previous.destroy) == "function" then
-    pcall(previous.destroy)
+for _, key in ipairs({"__VAIL_v3", "__VAIL_v12", "__VAIL_v2"}) do
+    local prev = environment[key]
+    if type(prev) == "table" and type(prev.destroy) == "function" then
+        pcall(prev.destroy)
+    end
 end
 
 local runtime = {
@@ -51,14 +61,22 @@ end
 
 local function new(cls, props, par)
     local o = Instance.new(cls)
-    for k,v in pairs(props or {}) do o[k]=v end
+    if props then
+        for k,v in pairs(props) do
+            pcall(function() o[k] = v end)
+        end
+    end
     if par then o.Parent = par end
     return o
 end
 
 local function corner(p, r)
     local c = Instance.new("UICorner")
-    c.CornerRadius = typeof(r) == "UDim" and r or UDim.new(0, r)
+    if type(r) == "number" then
+        c.CornerRadius = UDim.new(0, r)
+    else
+        c.CornerRadius = r
+    end
     if p then c.Parent = p end
     return c
 end
@@ -71,6 +89,18 @@ local function mstroke(p, col, t, th)
     s.Parent = p
     return s
 end
+
+local firesignal_fn = type(firesignal) == "function" and firesignal or nil
+local fireclick_fn  = type(fireclick) == "function" and fireclick or nil
+local getconns_fn   = type(getconnections) == "function" and getconnections
+                      or (debug and type(debug.getconnections) == "function" and debug.getconnections)
+                      or nil
+local getupvalues_fn = (debug and type(debug.getupvalues) == "function" and debug.getupvalues)
+                       or type(getupvalues) == "function" and getupvalues
+                       or nil
+local setupvalue_fn  = (debug and type(debug.setupvalue) == "function" and debug.setupvalue)
+                       or type(setupvalue) == "function" and setupvalue
+                       or nil
 
 -- ═══════════════════════════════
 -- PALETTE
@@ -94,9 +124,6 @@ local C = {
     conBg    = Color3.fromRGB(9, 9, 13),
 }
 
--- ═══════════════════════════════
--- DIMENSIONS
--- ═══════════════════════════════
 local WIN_W = 244
 local WIN_H = 318
 local PAD   = 12
@@ -117,7 +144,7 @@ local Gui = new("ScreenGui", {
 runtime.gui = Gui
 
 -- ═══════════════════════════════
--- WINDOW
+-- WINDOW (sin accent line)
 -- ═══════════════════════════════
 local Window = new("Frame", {
     Name="Win",
@@ -132,17 +159,6 @@ local Window = new("Frame", {
 }, Gui)
 corner(Window, RAD)
 mstroke(Window, C.border, 0.25, 1)
-
--- accent line top
-local AccentLine = new("Frame", {
-    Size=UDim2.new(0.35, 0, 0, 2),
-    Position=UDim2.new(0.325, 0, 0, 0),
-    BackgroundColor3=C.accent,
-    BackgroundTransparency=0.25,
-    BorderSizePixel=0,
-    ZIndex=10,
-}, Window)
-corner(AccentLine, 1)
 
 -- bg image
 local BgImage = new("ImageLabel", {
@@ -172,38 +188,29 @@ local Content = new("Frame", {
 }, Window)
 
 -- ═══════════════════════════════
--- COMMUNITY PARTICLE SYSTEM
--- Uses popular Roblox community textures
+-- PARTICLE SYSTEM
 -- ═══════════════════════════════
--- Popular community particle textures:
--- Soft glow, sparkles, magic, circle flare
 local P_TEXTURES = {
-    "rbxassetid://5833235272",  -- soft circle (community favorite)
-    "rbxassetid://5833323391",  -- sparkle burst
-    "rbxassetid://5857892330",  -- soft star
-    "rbxassetid://5857851618",  -- circle flare
-    "rbxassetid://6711256324",  -- soft dot glow
+    "rbxassetid://5833235272",
+    "rbxassetid://5833323391",
+    "rbxassetid://5857892330",
+    "rbxassetid://5857851618",
+    "rbxassetid://6711256324",
 }
 
--- Each particle: a small ImageLabel that floats gently
 local function spawnParticle()
     if not runtime.particlesEnabled then return end
     if not ParticleLayer or not ParticleLayer.Parent then return end
-
     local tex = P_TEXTURES[math.random(1, #P_TEXTURES)]
     local size = math.random(18, 48)
     local startX = math.random(-10, WIN_W - size + 10)
     local startY = WIN_H + 10
-
-    local driftX = math.random(-25, 25) / 10  -- -2.5 to 2.5
-    local riseSpeed = 40 + math.random(15, 55) -- gentle upward
-    local fadeSpeed = 0.06 + math.random() * 0.08
-
-    local hue = math.random(200, 260) / 360    -- blue-purple range
+    local driftX = math.random(-25, 25) / 10
+    local riseSpeed = 40 + math.random(15, 55)
+    local hue = math.random(200, 260) / 360
     local sat = 0.35 + math.random() * 0.35
     local val = 0.85 + math.random() * 0.15
     local tint = Color3.fromHSV(hue, sat, val)
-
     local p = new("ImageLabel", {
         Size=UDim2.new(0, size, 0, size),
         Position=UDim2.new(0, startX, 0, startY),
@@ -214,13 +221,11 @@ local function spawnParticle()
         Rotation=math.random(0, 360),
         ZIndex=2,
     }, ParticleLayer)
-
     local life = 0
     local rotSpeed = math.random(-30, 30)
     local wobbleAmp = math.random(5, 20) / 10
     local wobbleFreq = 0.5 + math.random() * 1.5
     local baseX = startX
-
     local mc
     mc = RunService.Heartbeat:Connect(function(dt)
         if not p.Parent then
@@ -228,26 +233,17 @@ local function spawnParticle()
             return
         end
         life = life + dt
-
         local newY = p.Position.Y.Offset - riseSpeed * dt
         local wobble = math.sin(life * wobbleFreq * math.pi * 2) * wobbleAmp
         local newX = baseX + driftX * life * 8 + wobble * 6
-
         p.Position = UDim2.new(0, newX, 0, newY)
         p.Rotation = p.Rotation + rotSpeed * dt
-
-        -- fade in then fade out
         local progress = 1 - (newY / startY)
         if progress < 0.2 then
-            -- fading in
-            local fadeIn = progress / 0.2
-            p.ImageTransparency = 0.4 + (1 - fadeIn) * 0.6
+            p.ImageTransparency = 0.4 + (1 - progress / 0.2) * 0.6
         else
-            -- fading out
-            local fadeOut = (progress - 0.2) / 0.8
-            p.ImageTransparency = 0.4 + fadeOut * 0.6
+            p.ImageTransparency = 0.4 + ((progress - 0.2) / 0.8) * 0.6
         end
-
         if newY < -size - 20 then
             p:Destroy()
             if mc then mc:Disconnect() end
@@ -255,12 +251,10 @@ local function spawnParticle()
     end)
 end
 
--- particle spawner loop
 task.spawn(function()
     while runtime.alive and Gui and Gui.Parent do
         if runtime.particlesEnabled then
             spawnParticle()
-            -- spawn occasional clusters
             if math.random() > 0.65 then
                 task.wait(0.05)
                 spawnParticle()
@@ -271,7 +265,7 @@ task.spawn(function()
 end)
 
 -- ═══════════════════════════════
--- HEADER
+-- HEADER (solo Settings + Minimize)
 -- ═══════════════════════════════
 local HDR_H = 44
 
@@ -305,9 +299,9 @@ new("TextLabel", {
     ZIndex=7,
 }, Header)
 
--- version tag v1.2
+-- version tag
 local vTag = new("TextLabel", {
-    Size=UDim2.new(0, 28, 0, 13),
+    Size=UDim2.new(0, 30, 0, 13),
     Position=UDim2.new(0, PAD + 52, 0.5, -6),
     BackgroundColor3=C.accentDk,
     BackgroundTransparency=0.3,
@@ -319,7 +313,7 @@ local vTag = new("TextLabel", {
 }, Header)
 corner(vTag, 3)
 
--- header buttons: [START] [Settings] [−]
+-- header buttons: solo [Settings] [−]
 local BTN_HDR_H = 22
 local HDR_GAP = 6
 
@@ -329,7 +323,7 @@ local MinBtn = new("TextButton", {
     Position=UDim2.new(1, -PAD - 22, 0.5, -BTN_HDR_H/2),
     BackgroundColor3=C.surface,
     BackgroundTransparency=0.1,
-    Text="−",
+    Text="-",
     TextColor3=C.textMut,
     Font=Enum.Font.GothamMedium,
     TextSize=15,
@@ -356,23 +350,6 @@ local SettingsBtn = new("TextButton", {
 }, Header)
 corner(SettingsBtn, 6)
 mstroke(SettingsBtn, C.border, 0.5, 1)
-
-local StartBtn = new("TextButton", {
-    Name="StartBtn",
-    Size=UDim2.new(0, 52, 0, BTN_HDR_H),
-    Position=UDim2.new(1, -PAD - 22 - HDR_GAP - 54 - HDR_GAP - 52, 0.5, -BTN_HDR_H/2),
-    BackgroundColor3=C.accentDk,
-    BackgroundTransparency=0.2,
-    Text="START",
-    TextColor3=C.accent,
-    Font=Enum.Font.GothamBlack,
-    TextSize=8,
-    AutoButtonColor=false,
-    BorderSizePixel=0,
-    ZIndex=7,
-}, Header)
-corner(StartBtn, 6)
-mstroke(StartBtn, C.accent, 0.55, 1)
 
 -- divider
 new("Frame", {
@@ -463,9 +440,9 @@ local function makeActionBtn(text, x, primary)
     return b
 end
 
-local ClearBtn  = makeActionBtn("Clear", 0, false)
-local RedeemBtn = makeActionBtn("Redeem", BTN_W + BTN_GAP, true)
-local ActionStartBtn = makeActionBtn("Start", (BTN_W + BTN_GAP) * 2, false)
+local ClearBtn      = makeActionBtn("Clear", 0, false)
+local RedeemBtn     = makeActionBtn("Redeem", BTN_W + BTN_GAP, true)
+local StartBtn      = makeActionBtn("Start", (BTN_W + BTN_GAP) * 2, false)
 
 -- ═══════════════════════════════
 -- TOGGLE ROWS
@@ -478,7 +455,6 @@ local rowIdx = 0
 local function makeToggleRow(label)
     rowIdx = rowIdx + 1
     local y = ROW_Y0 + (rowIdx - 1) * (ROW_H + ROW_GAP)
-
     local r = new("Frame", {
         Size=UDim2.new(1, -PAD*2, 0, ROW_H),
         Position=UDim2.new(0, PAD, 0, y),
@@ -489,7 +465,6 @@ local function makeToggleRow(label)
     }, Content)
     corner(r, 8)
     mstroke(r, C.border, 0.65, 1)
-
     new("TextLabel", {
         Size=UDim2.new(0.6, 0, 1, 0),
         Position=UDim2.new(0, 14, 0, 0),
@@ -501,7 +476,6 @@ local function makeToggleRow(label)
         TextXAlignment=Enum.TextXAlignment.Left,
         ZIndex=7,
     }, r)
-
     local btn = new("TextButton", {
         Size=UDim2.new(0, 44, 0, 20),
         Position=UDim2.new(1, -56, 0.5, -10),
@@ -516,7 +490,6 @@ local function makeToggleRow(label)
     }, r)
     corner(btn, 6)
     mstroke(btn, C.border, 0.55, 1)
-
     return r, btn
 end
 
@@ -542,12 +515,9 @@ end
 local R_Type, TypeTgl = makeToggleRow("Auto Type")
 local R_Submit, SubmitTgl = makeToggleRow("Auto Submit")
 
--- ═══════════════════════════════
--- COUNTER ROW
--- ═══════════════════════════════
+-- counter row
 rowIdx = rowIdx + 1
 local CTR_Y = ROW_Y0 + (rowIdx - 1) * (ROW_H + ROW_GAP)
-
 local CtrRow = new("Frame", {
     Size=UDim2.new(1, -PAD*2, 0, ROW_H),
     Position=UDim2.new(0, PAD, 0, CTR_Y),
@@ -558,7 +528,6 @@ local CtrRow = new("Frame", {
 }, Content)
 corner(CtrRow, 8)
 mstroke(CtrRow, C.border, 0.65, 1)
-
 new("TextLabel", {
     Size=UDim2.new(0.5, 0, 1, 0),
     Position=UDim2.new(0, 14, 0, 0),
@@ -570,7 +539,6 @@ new("TextLabel", {
     TextXAlignment=Enum.TextXAlignment.Left,
     ZIndex=7,
 }, CtrRow)
-
 local CtrBox = new("Frame", {
     Size=UDim2.new(0, 74, 0, 20),
     Position=UDim2.new(1, -86, 0.5, -10),
@@ -581,13 +549,12 @@ local CtrBox = new("Frame", {
 }, CtrRow)
 corner(CtrBox, 6)
 mstroke(CtrBox, C.border, 0.55, 1)
-
 local CtrMin = new("TextButton", {
     Size=UDim2.new(0, 20, 0, 18),
     Position=UDim2.new(0, 2, 0, 1),
     BackgroundColor3=C.elevated,
     BackgroundTransparency=0.3,
-    Text="−",
+    Text="-",
     TextColor3=C.textSec,
     Font=Enum.Font.GothamBold,
     TextSize=12,
@@ -596,7 +563,6 @@ local CtrMin = new("TextButton", {
     ZIndex=9,
 }, CtrBox)
 corner(CtrMin, 4)
-
 local CtrLbl = new("TextLabel", {
     Size=UDim2.new(0, 24, 1, 0),
     Position=UDim2.new(0, 25, 0, 0),
@@ -607,7 +573,6 @@ local CtrLbl = new("TextLabel", {
     TextSize=10,
     ZIndex=9,
 }, CtrBox)
-
 local CtrPlus = new("TextButton", {
     Size=UDim2.new(0, 20, 0, 18),
     Position=UDim2.new(0, 52, 0, 1),
@@ -623,14 +588,12 @@ local CtrPlus = new("TextButton", {
 }, CtrBox)
 corner(CtrPlus, 4)
 
--- Auto Copy row
 local R_Copy, CopyTgl = makeToggleRow("Auto Copy")
 
 -- ═══════════════════════════════
 -- FOOTER
 -- ═══════════════════════════════
 local FT_Y = ROW_Y0 + rowIdx * (ROW_H + ROW_GAP) + 6
-
 new("Frame", {
     Size=UDim2.new(1, -PAD*2, 0, 1),
     Position=UDim2.new(0, PAD, 0, FT_Y - 3),
@@ -639,12 +602,11 @@ new("Frame", {
     BorderSizePixel=0,
     ZIndex=5,
 }, Content)
-
 new("TextLabel", {
     Size=UDim2.new(1, -PAD*2, 0, 14),
     Position=UDim2.new(0, PAD, 0, FT_Y + 1),
     BackgroundTransparency=1,
-    Text="Vail  ·  by hskery50  ·  discord.gg/PGYSEVHV72",
+    Text="Vail  |  by hskery50  |  discord.gg/PGYSEVHV72",
     TextColor3=C.textMut,
     Font=Enum.Font.GothamMedium,
     TextSize=7,
@@ -661,8 +623,7 @@ MinBtn.MouseButton1Click:Connect(function()
     TweenService:Create(Window, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
         Size = UDim2.new(0, WIN_W, 0, minimized and HDR_H + 2 or WIN_H)
     }):Play()
-    MinBtn.Text = minimized and "+" or "−"
-    AccentLine.Visible = not minimized
+    MinBtn.Text = minimized and "+" or "-"
 end)
 
 -- ═══════════════════════════════
@@ -689,31 +650,17 @@ connect(UserInputService.InputEnded, function(i)
 end)
 
 -- ═══════════════════════════════
--- START VISUAL
+-- START VISUAL (solo el boton de acciones)
 -- ═══════════════════════════════
 local function syncStartVisual()
     if runtime.enabled then
+        StatusDot.BackgroundColor3 = C.green
+        StartBtn.Text = "Stop"
+        StartBtn.TextColor3 = C.red
         pcall(function()
             TweenService:Create(StartBtn, TweenInfo.new(0.15), {BackgroundColor3 = C.redBg}):Play()
         end)
-        StartBtn.Text = "STOP"
-        StartBtn.TextColor3 = C.red
         for _, ch in ipairs(StartBtn:GetChildren()) do
-            if ch:IsA("UIStroke") then
-                pcall(function()
-                    TweenService:Create(ch, TweenInfo.new(0.15), {Color = C.red, Transparency = 0.35}):Play()
-                end)
-            end
-        end
-        StatusDot.BackgroundColor3 = C.green
-
-        -- sync the bottom Start button too
-        ActionStartBtn.Text = "Stop"
-        ActionStartBtn.TextColor3 = C.red
-        pcall(function()
-            TweenService:Create(ActionStartBtn, TweenInfo.new(0.15), {BackgroundColor3 = C.redBg}):Play()
-        end)
-        for _, ch in ipairs(ActionStartBtn:GetChildren()) do
             if ch:IsA("UIStroke") then
                 pcall(function()
                     TweenService:Create(ch, TweenInfo.new(0.15), {Color = C.red, Transparency = 0.35}):Play()
@@ -721,27 +668,13 @@ local function syncStartVisual()
             end
         end
     else
-        pcall(function()
-            TweenService:Create(StartBtn, TweenInfo.new(0.15), {BackgroundColor3 = C.accentDk}):Play()
-        end)
-        StartBtn.Text = "START"
-        StartBtn.TextColor3 = C.accent
-        for _, ch in ipairs(StartBtn:GetChildren()) do
-            if ch:IsA("UIStroke") then
-                pcall(function()
-                    TweenService:Create(ch, TweenInfo.new(0.15), {Color = C.accent, Transparency = 0.55}):Play()
-                end)
-            end
-        end
         StatusDot.BackgroundColor3 = C.textMut
-
-        -- sync the bottom Start button too
-        ActionStartBtn.Text = "Start"
-        ActionStartBtn.TextColor3 = C.textSec
+        StartBtn.Text = "Start"
+        StartBtn.TextColor3 = C.textSec
         pcall(function()
-            TweenService:Create(ActionStartBtn, TweenInfo.new(0.15), {BackgroundColor3 = C.surface}):Play()
+            TweenService:Create(StartBtn, TweenInfo.new(0.15), {BackgroundColor3 = C.surface}):Play()
         end)
-        for _, ch in ipairs(ActionStartBtn:GetChildren()) do
+        for _, ch in ipairs(StartBtn:GetChildren()) do
             if ch:IsA("UIStroke") then
                 pcall(function()
                     TweenService:Create(ch, TweenInfo.new(0.15), {Color = C.border, Transparency = 0.6}):Play()
@@ -787,18 +720,14 @@ local settingsOpen = false
 local function createSettingsMenu()
     if settingsOpen then return end
     settingsOpen = true
-
     local oldS = parentGui:FindFirstChild("VailSettingsUI")
     if oldS then oldS:Destroy() end
-
     local SG = new("ScreenGui", {
         Name="VailSettingsUI", ResetOnSpawn=false,
         IgnoreGuiInset=true, DisplayOrder=998,
     }, parentGui)
     runtime.settingsGui = SG
-
     local SW, SH = 220, 248
-
     local SWin = new("Frame", {
         Size=UDim2.new(0, SW, 0, SH),
         AnchorPoint=Vector2.new(0.5, 0.5),
@@ -811,16 +740,6 @@ local function createSettingsMenu()
     }, SG)
     corner(SWin, RAD)
     mstroke(SWin, C.border, 0.25, 1)
-
-    local sAccentLine = new("Frame", {
-        Size=UDim2.new(0.35, 0, 0, 2),
-        Position=UDim2.new(0.325, 0, 0, 0),
-        BackgroundColor3=C.accent,
-        BackgroundTransparency=0.25,
-        BorderSizePixel=0,
-        ZIndex=20,
-    }, SWin)
-    corner(sAccentLine, 1)
 
     new("ImageLabel", {
         Size=UDim2.new(1, 0, 1, 0),
@@ -836,13 +755,11 @@ local function createSettingsMenu()
         BackgroundTransparency=1,
         ZIndex=16,
     }, SWin)
-
     local SHdr = new("Frame", {
         Size=UDim2.new(1, 0, 0, 34),
         BackgroundTransparency=1,
         ZIndex=17,
     }, SC)
-
     new("TextLabel", {
         Size=UDim2.new(1, -36, 1, 0),
         Position=UDim2.new(0, PAD, 0, 0),
@@ -854,13 +771,12 @@ local function createSettingsMenu()
         TextXAlignment=Enum.TextXAlignment.Left,
         ZIndex=17,
     }, SHdr)
-
     local SClose = new("TextButton", {
         Size=UDim2.new(0, 20, 0, 20),
         Position=UDim2.new(1, -PAD - 20, 0.5, -10),
         BackgroundColor3=C.surface,
         BackgroundTransparency=0.1,
-        Text="×",
+        Text="x",
         TextColor3=C.textMut,
         Font=Enum.Font.GothamBold,
         TextSize=13,
@@ -870,7 +786,6 @@ local function createSettingsMenu()
     }, SHdr)
     corner(SClose, 5)
     mstroke(SClose, C.border, 0.5, 1)
-
     new("Frame", {
         Size=UDim2.new(1, -PAD*2, 0, 1),
         Position=UDim2.new(0, PAD, 0, 34),
@@ -879,7 +794,6 @@ local function createSettingsMenu()
         BorderSizePixel=0,
         ZIndex=16,
     }, SC)
-
     local LPad = new("Frame", {
         Size=UDim2.new(1, -PAD*2, 0, SH - 42),
         Position=UDim2.new(0, PAD, 0, 40),
@@ -901,7 +815,6 @@ local function createSettingsMenu()
         }, LPad)
         corner(r, 7)
         mstroke(r, C.border, 0.65, 1)
-
         new("TextLabel", {
             Size=UDim2.new(0.6, 0, 1, 0),
             Position=UDim2.new(0, 12, 0, 0),
@@ -913,7 +826,6 @@ local function createSettingsMenu()
             TextXAlignment=Enum.TextXAlignment.Left,
             ZIndex=18,
         }, r)
-
         local b = new("TextButton", {
             Size=UDim2.new(0, 40, 0, 18),
             Position=UDim2.new(1, -52, 0.5, -9),
@@ -928,7 +840,6 @@ local function createSettingsMenu()
         }, r)
         corner(b, 5)
         mstroke(b, default and C.green or C.border, 0.5, 1)
-
         b.MouseButton1Click:Connect(function()
             local on = (b.Text == "OFF")
             setToggle(b, on)
@@ -960,7 +871,6 @@ local function createSettingsMenu()
         }, LPad)
         corner(r, 7)
         mstroke(r, C.border, 0.65, 1)
-
         new("TextLabel", {
             Size=UDim2.new(0.55, 0, 1, 0),
             Position=UDim2.new(0, 12, 0, 0),
@@ -972,7 +882,6 @@ local function createSettingsMenu()
             TextXAlignment=Enum.TextXAlignment.Left,
             ZIndex=18,
         }, r)
-
         local b = new("TextButton", {
             Size=UDim2.new(0, 46, 0, 18),
             Position=UDim2.new(1, -56, 0.5, -9),
@@ -987,7 +896,6 @@ local function createSettingsMenu()
         }, r)
         corner(b, 5)
         mstroke(b, C.accent, 0.55, 1)
-
         b.MouseButton1Click:Connect(function()
             pcall(function()
                 if setclipboard then setclipboard(link)
@@ -1016,12 +924,10 @@ local function createSettingsMenu()
             for _, c in ipairs(ParticleLayer:GetChildren()) do c:Destroy() end
         end
     end)
-
     sToggle(2, "Background", runtime.backgroundEnabled, function(on)
         runtime.backgroundEnabled = on
         BgImage.Visible = on
     end)
-
     sSection(3, "--- VS COMMUNITY ---")
     sCopyBtn(4, "Discord Owner", "https://dc.gg/vail.vs")
     sCopyBtn(5, "Discord Partner", "https://dc.gg/eclipse.vs")
@@ -1031,13 +937,10 @@ local function createSettingsMenu()
         runtime.settingsGui = nil
         settingsOpen = false
     end)
-
     local sd, sds, ssp
     connect(SHdr.InputBegan, function(i)
         if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-            sd = true
-            sds = i.Position
-            ssp = SWin.Position
+            sd = true; sds = i.Position; ssp = SWin.Position
         end
     end)
     connect(UserInputService.InputChanged, function(i)
@@ -1151,10 +1054,6 @@ local function findSubmitButton(box)
     return btns[1]
 end
 
-local getupvalues = (debug and debug.getupvalues) or getupvalues
-local getconns = getconnections or (debug and debug.getconnections)
-local setupv = (debug and debug.setupvalue) or setupvalue
-
 local function clickButton(btn)
     if not btn then return false end
     local ok = false
@@ -1162,24 +1061,24 @@ local function clickButton(btn)
         function() btn.MouseButton1Click:Fire() end,
         function() btn.Activated:Fire() end,
     }
-    if typeof(firesignal) == "function" then
-        table.insert(methods, function() firesignal(btn.MouseButton1Click) end)
-        table.insert(methods, function() firesignal(btn.Activated) end)
+    if firesignal_fn then
+        table.insert(methods, function() firesignal_fn(btn.MouseButton1Click) end)
+        table.insert(methods, function() firesignal_fn(btn.Activated) end)
     end
-    if typeof(getconns) == "function" then
+    if getconns_fn then
         table.insert(methods, function()
-            local s, c = pcall(getconns, btn.MouseButton1Click)
+            local s, c = pcall(getconns_fn, btn.MouseButton1Click)
             if s and type(c) == "table" then
                 for _, x in ipairs(c) do pcall(function() x:Fire() end) end
             end
-            local s2, c2 = pcall(getconns, btn.Activated)
+            local s2, c2 = pcall(getconns_fn, btn.Activated)
             if s2 and type(c2) == "table" then
                 for _, x in ipairs(c2) do pcall(function() x:Fire() end) end
             end
         end)
     end
-    if typeof(fireclick) == "function" then
-        table.insert(methods, function() fireclick(btn) end)
+    if fireclick_fn then
+        table.insert(methods, function() fireclick_fn(btn) end)
     end
     for _, fn in ipairs(methods) do
         ok = ok or pcall(fn)
@@ -1190,21 +1089,21 @@ end
 local function fireBoxFocusLost(box)
     if not box then return false end
     local fired = false
-    if typeof(firesignal) == "function" then
-        fired = fired or pcall(firesignal, box.FocusLost, true)
+    if firesignal_fn then
+        fired = fired or pcall(firesignal_fn, box.FocusLost, true)
     end
-    if typeof(getconns) == "function" then
-        local s, c = pcall(getconns, box.FocusLost)
+    if getconns_fn then
+        local s, c = pcall(getconns_fn, box.FocusLost)
         if s and type(c) == "table" then
             for _, x in ipairs(c) do
                 local fn
                 pcall(function() fn = x.Function end)
-                if fn and typeof(getupvalues) == "function" and typeof(setupv) == "function" then
-                    local u, ups = pcall(getupvalues, fn)
+                if fn and getupvalues_fn and setupvalue_fn then
+                    local u, ups = pcall(getupvalues_fn, fn)
                     if u and type(ups) == "table" then
                         for i, v in pairs(ups) do
                             if type(v) == "boolean" and v == true then
-                                pcall(setupv, fn, i, false)
+                                pcall(setupvalue_fn, fn, i, false)
                             end
                         end
                     end
@@ -1221,14 +1120,12 @@ end
 local function processCode(code)
     if not code or code == "" then return end
     runtime.lastCode = code
-
     if runtime.autoCopy then
         pcall(function()
             if setclipboard then setclipboard(code)
             elseif toclipboard then toclipboard(code) end
         end)
     end
-
     if runtime.autoType then
         local box = findCodeBox()
         if not box then
@@ -1258,15 +1155,11 @@ local function processCode(code)
             consoleLog('<font color="#e6505f">No submit found</font>')
         end
     end
-
     if runtime.autoCopy then
         consoleLog('<font color="#55d282">Copied: ' .. code .. '</font>')
     end
 end
 
--- ═══════════════════════════════
--- NOTIFICATION LISTENER
--- ═══════════════════════════════
 local function resolveNotifyRemote()
     if runtime.notifyRemote and runtime.notifyRemote.Parent then return runtime.notifyRemote end
     local cands = {}
@@ -1305,18 +1198,15 @@ local function onAnnouncement(...)
     if runtime.seen[text] then return end
     runtime.seen[text] = true
     task.delay(1.25, function() runtime.seen[text] = nil end)
-
     for _, w in ipairs(tokenize(text)) do
         table.insert(runtime.capturedParts, w)
     end
     local cnt = #runtime.capturedParts
     local joined = table.concat(runtime.capturedParts)
-
     consoleLog(string.format(
         '<font color="#9ba5ff">%d/%d</font> <font color="#6b7099">[%s]</font>',
         cnt, runtime.submitAfter, joined
     ))
-
     if cnt >= runtime.submitAfter then
         runtime.lastCode = joined
         runtime.capturedParts = {}
@@ -1358,39 +1248,32 @@ end
 -- CONNECTIONS
 -- ═══════════════════════════════
 StartBtn.MouseButton1Click:Connect(toggleEnabled)
-ActionStartBtn.MouseButton1Click:Connect(toggleEnabled)
 
 TypeTgl.MouseButton1Click:Connect(function()
     runtime.autoType = not runtime.autoType
     setToggle(TypeTgl, runtime.autoType)
 end)
-
 SubmitTgl.MouseButton1Click:Connect(function()
     runtime.autoSubmit = not runtime.autoSubmit
     setToggle(SubmitTgl, runtime.autoSubmit)
 end)
-
 CopyTgl.MouseButton1Click:Connect(function()
     runtime.autoCopy = not runtime.autoCopy
     setToggle(CopyTgl, runtime.autoCopy)
 end)
-
 CtrMin.MouseButton1Click:Connect(function()
     runtime.submitAfter = math.clamp(runtime.submitAfter - 1, 1, 10)
     CtrLbl.Text = tostring(runtime.submitAfter)
     runtime.capturedParts = {}
 end)
-
 CtrPlus.MouseButton1Click:Connect(function()
     runtime.submitAfter = math.clamp(runtime.submitAfter + 1, 1, 10)
     CtrLbl.Text = tostring(runtime.submitAfter)
     runtime.capturedParts = {}
 end)
-
 ClearBtn.MouseButton1Click:Connect(function()
     consoleLog("")
 end)
-
 RedeemBtn.MouseButton1Click:Connect(function()
     local code = runtime.lastCode
     if (not code or code == "") and #runtime.capturedParts > 0 then
@@ -1404,7 +1287,6 @@ RedeemBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- keybind
 connect(UserInputService.InputBegan, function(input, gpe)
     if gpe then return end
     if runtime.listeningKey then
@@ -1421,7 +1303,6 @@ connect(LP.CharacterAdded, function()
     task.wait(1)
     createHeadDisplay()
 end)
-
 task.spawn(function()
     task.wait(0.5)
     createHeadDisplay()
