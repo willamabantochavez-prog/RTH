@@ -1,8 +1,8 @@
 -- Ejecutar el primer script
 loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/RTH/refs/heads/main/Vial%20Intro"))()
 
--- Esperar 9 segundos
-task.wait(5)
+-- Esperar 3 segundos
+task.wait(3)
 
 -- Ejecutar el segundo script
-loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/awdaa/refs/heads/main/Setup%202%20ff%202%20tp2%20anim%202"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/RTH/refs/heads/main/Vial%20gg"))()
