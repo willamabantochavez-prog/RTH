@@ -172,7 +172,7 @@ local BgImage = new("ImageLabel", {
     Size=UDim2.new(1, 0, 1, 0),
     BackgroundTransparency=1,
     Image="rbxassetid://84558133348665",
-    ImageTransparency=0.60,
+    ImageTransparency=0.88,
     ScaleType=Enum.ScaleType.Stretch,
     ZIndex=1,
 }, Window)
@@ -751,7 +751,7 @@ local function createSettingsMenu()
         Size=UDim2.new(1, 0, 1, 0),
         BackgroundTransparency=1,
         Image="rbxassetid://84558133348665",
-        ImageTransparency=0.80,
+        ImageTransparency=0.92,
         ScaleType=Enum.ScaleType.Stretch,
         ZIndex=15,
     }, SWin)
