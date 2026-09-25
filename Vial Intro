@@ -1,12 +1,12 @@
 repeat task.wait() until game:IsLoaded()
 
 -- ============================================================
--- VIAL.VS CODE SNIPER INTRO - 5 SECONDS
+-- VIAL.VS CODE SNIPER INTRO ANIMATION - TRIANGLE EDITION
 -- ============================================================
 local INTRO_SOUND_IDS = {
-    [1] = "1845942566",
-    [2] = "1837849285",
-    [3] = "9113866692",
+    [1] = "17504881745",
+    [2] = "8003103632",
+    [3] = "7556198569",
 }
 local selectedIntroIndex = 1
 local playIntroEnabled = true
@@ -28,7 +28,7 @@ local function playIntroAnimation()
     local Sg = game:GetService("StarterGui")
     local pr = game:GetService("Players").LocalPlayer
     local pg = pr:WaitForChild("PlayerGui")
-    local D = 5.0  -- EXACTLY 5 SECONDS TOTAL
+    local D = 3.5
     local LID = "rbxassetid://102835976293723"
     
     -- Purple/White/Black palette
@@ -119,14 +119,14 @@ local function playIntroAnimation()
         end
     end)
 
-    task.delay(0.3, function()
-        tn(skipBtn, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+    task.delay(0.4, function()
+        tn(skipBtn, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
             Position = UDim2.new(1, -145, 0, 20),
             TextTransparency = 0,
             BackgroundTransparency = 0.75,
         }):Play()
-        tn(skipStroke, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {Transparency = 0.4}):Play()
-        tn(skipArrow, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = 0.1}):Play()
+        tn(skipStroke, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {Transparency = 0.4}):Play()
+        tn(skipArrow, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = 0.1}):Play()
     end)
 
     skipBtn.MouseEnter:Connect(function()
@@ -164,14 +164,19 @@ local function playIntroAnimation()
             tn(introBlur, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {Size = 0}):Play()
         end
         task.delay(0.2, function()
-            pcall(function() if introBlur and introBlur.Parent then introBlur:Destroy() end end)
-            pcall(function() if gui and gui.Parent then gui:Destroy() end end)
+            pcall(function()
+                if introBlur and introBlur.Parent then introBlur:Destroy() end
+            end)
+            pcall(function()
+                if gui and gui.Parent then gui:Destroy() end
+            end)
             uf()
         end)
     end)
 
     -- BACKGROUND
     local Lighting = game:GetService("Lighting")
+
     local existingBlur = Lighting:FindFirstChild("VialVsCodeIntroBlur")
     if existingBlur then existingBlur:Destroy() end
 
@@ -179,7 +184,7 @@ local function playIntroAnimation()
     introBlur.Name = "VialVsCodeIntroBlur"
     introBlur.Size = 0
     introBlur.Parent = Lighting
-    tn(introBlur, 0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Size = 24}):Play()
+    tn(introBlur, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Size = 24}):Play()
 
     local bgGrad = Instance.new("Frame", gui)
     bgGrad.Size = UDim2.new(1, 0, 1, 0)
@@ -188,7 +193,7 @@ local function playIntroAnimation()
     bgGrad.BorderSizePixel = 0
     bgGrad.Active = false
     bgGrad.ZIndex = 1
-    tn(bgGrad, 0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 0.5}):Play()
+    tn(bgGrad, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 0.5}):Play()
 
     local bgGradEffect = Instance.new("UIGradient", bgGrad)
     bgGradEffect.Color = ColorSequence.new({
@@ -197,6 +202,7 @@ local function playIntroAnimation()
         ColorSequenceKeypoint.new(0.66, Purple4),
         ColorSequenceKeypoint.new(1.00, Black1),
     })
+    bgGradEffect.Rotation = 0
     
     task.spawn(function()
         local breathT = 0
@@ -283,7 +289,10 @@ local function playIntroAnimation()
                     local newX = p.frame.Position.X.Scale + p.wobble + math.sin(t + p.phase) * 0.0008
                     local newY = p.frame.Position.Y.Scale + p.speed
                     p.frame.Rotation = p.frame.Rotation + p.rotSpeed
-                    if newY > 1.15 then newY = -0.1; newX = math.random() * 1.2 - 0.1 end
+                    if newY > 1.15 then
+                        newY = -0.1
+                        newX = math.random() * 1.2 - 0.1
+                    end
                     if newX > 1.1 then newX = -0.1 end
                     if newX < -0.1 then newX = 1.1 end
                     p.frame.Position = UDim2.new(newX, 0, newY, 0)
@@ -379,11 +388,13 @@ local function playIntroAnimation()
     task.spawn(function()
         while gui and gui.Parent and introActive do
             task.wait()
-            if triBorder then triBorder.Rotation = (triBorder.Rotation + 0.8) % 360 end
+            if triBorder then
+                triBorder.Rotation = (triBorder.Rotation + 0.8) % 360
+            end
         end
     end)
 
-    -- Outer triangles
+    -- Outer decorative triangles
     for i = 1, 6 do
         local outerTri = Instance.new("Frame", ringContainer)
         local triSize = 10 + i * 2
@@ -399,7 +410,7 @@ local function playIntroAnimation()
         Instance.new("UICorner", outerTri).CornerRadius = UDim.new(0, 1)
     end
 
-    -- LOGO
+    -- LOGO CONTAINER (circular)
     local imageContainer = Instance.new("Frame", ringContainer)
     imageContainer.Size = UDim2.new(0, 14, 0, 14)
     imageContainer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -428,10 +439,13 @@ local function playIntroAnimation()
     task.spawn(function()
         while gui and gui.Parent and introActive do
             task.wait()
-            if strokeGrad and strokeGrad.Parent then strokeGrad.Rotation = (strokeGrad.Rotation + 2) % 360 end
+            if strokeGrad and strokeGrad.Parent then
+                strokeGrad.Rotation = (strokeGrad.Rotation + 2) % 360
+            end
         end
     end)
 
+    -- LOGO IMAGE
     local li = Instance.new("ImageLabel", imageContainer)
     li.Image = "rbxassetid://102835976293723"
     li.Size = UDim2.new(1, -6, 1, -6)
@@ -482,7 +496,9 @@ local function playIntroAnimation()
     progressText.TextSize = 12
     progressText.ZIndex = 5
 
-    -- TEXT: "Vial.VS" on top, "CODE SNIPER" below
+    -- ============================================================
+    -- TEXT LAYOUT: "Vial.VS" on top, "CODE SNIPER" below
+    -- ============================================================
     local function createShimmerText(word, yPos, color, size, spacing)
         local container = Instance.new("Frame", gui)
         container.Size = UDim2.new(1, 0, 0, size + 10)
@@ -531,7 +547,9 @@ local function playIntroAnimation()
         return container, labels
     end
 
+    -- LINE 1: "Vial.VS" (the dot makes it 7 chars)
     local line1c, line1l = createShimmerText("Vial.VS", 0.38, White1, 58, 3)
+    -- LINE 2: "CODE SNIPER" (space is included as a char)
     local line2c, line2l = createShimmerText("CODE SNIPER", 0.50, Purple3, 44, 1)
 
     -- Shimmer animation
@@ -549,8 +567,9 @@ local function playIntroAnimation()
         end
     end)
 
-    -- MUSIC (will be stopped when intro ends)
+    -- MUSIC
     local introSound
+    local soundEnded = false
     task.spawn(function()
         pcall(function()
             introSound = Instance.new("Sound")
@@ -558,21 +577,24 @@ local function playIntroAnimation()
             introSound.Volume = 0.7
             introSound.Parent = gui
             introSound:Play()
+            introSound.Ended:Connect(function()
+                soundEnded = true
+            end)
         end)
     end)
 
     -- ============================================================
-    -- ANIMATION SEQUENCE (fits in 5 seconds)
+    -- ANIMATION SEQUENCE
     -- ============================================================
 
     -- Camera shake
     task.spawn(function()
         local shake = 0
-        while gui and gui.Parent and introActive and shake < 15 do
+        while gui and gui.Parent and introActive and shake < 20 do
             task.wait(0.016)
             shake = shake + 1
-            if shake < 10 then
-                local intensity = 2 * (1 - shake/10)
+            if shake < 14 then
+                local intensity = 2 * (1 - shake/14)
                 ringContainer.Position = UDim2.new(
                     0.5 + (math.random() - 0.5) * intensity * 0.001,
                     (math.random() - 0.5) * intensity * 0.5,
@@ -587,33 +609,33 @@ local function playIntroAnimation()
 
     -- Logo scale
     task.delay(0.05, function()
-        tn(imageContainer, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+        tn(imageContainer, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
             Size = UDim2.new(0, 85, 0, 85)
         }):Play()
     end)
-    task.delay(0.65, function()
-        tn(imageContainer, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+    task.delay(0.8, function()
+        tn(imageContainer, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
             Size = UDim2.new(0, 70, 0, 70)
         }):Play()
     end)
 
     -- Logo fade in
-    tn(li, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0}):Play()
-    tn(imageStroke, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {Transparency = 0.2}):Play()
+    tn(li, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0}):Play()
+    tn(imageStroke, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {Transparency = 0.2}):Play()
 
-    -- "Vial.VS" cascade
-    task.delay(0.1, function()
+    -- "Vial.VS" letter cascade
+    task.delay(0.15, function()
         for i, lt in ipairs(line1l) do
             task.delay((i - 1) * 0.03, function()
                 lt.Position = UDim2.new(0, 0, 0.3, 0)
-                tn(lt, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
+                tn(lt, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
                     {TextTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}):Play()
             end)
         end
     end)
 
-    -- "CODE SNIPER" cascade
-    task.delay(0.35, function()
+    -- "CODE SNIPER" letter cascade
+    task.delay(0.45, function()
         for i, lt in ipairs(line2l) do
             task.delay((i - 1) * 0.02, function()
                 lt.Position = UDim2.new(0, 0, -0.3, 0)
@@ -623,9 +645,9 @@ local function playIntroAnimation()
         end
     end)
 
-    -- Loading ring (0.6s to 2.5s)
-    task.delay(0.5, function()
-        local duration = 2.0
+    -- Loading ring
+    task.delay(0.7, function()
+        local duration = 1.8
         local startTime = tick()
         task.spawn(function()
             while gui and gui.Parent and introActive do
@@ -642,9 +664,9 @@ local function playIntroAnimation()
         end)
     end)
 
-    -- Spark burst at ~2.5s
-    task.delay(2.5, function()
-        for i = 1, 20 do
+    -- Triangle spark burst
+    task.delay(2.6, function()
+        for i = 1, 25 do
             local sparkSize = math.random(5, 12)
             local spark = Instance.new("Frame", gui)
             spark.Size = UDim2.new(0, sparkSize, 0, sparkSize)
@@ -657,7 +679,7 @@ local function playIntroAnimation()
             spark.ZIndex = 10
             Instance.new("UICorner", spark).CornerRadius = UDim.new(0, 1)
             
-            local dur = 0.2 + math.random() * 0.2
+            local dur = 0.25 + math.random() * 0.25
             tn(spark, dur, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
                 Position = UDim2.new(0.5 + (math.random() - 0.5) * 0.6, 0, 0.80 + (math.random() - 0.5) * 0.5, 0),
                 BackgroundTransparency = 1,
@@ -677,10 +699,14 @@ local function playIntroAnimation()
         task.delay(0.4, function() pcall(function() flash:Destroy() end) end)
     end)
 
-    -- ============================================================
-    -- FADE OUT AT 4.2 SECONDS (total = 5s with cleanup)
-    -- ============================================================
-    task.delay(4.2, function()
+    -- FADE OUT WHEN MUSIC ENDS
+    task.spawn(function()
+        local waitStart = tick()
+        while not soundEnded and introActive do
+            task.wait(0.1)
+            if tick() - waitStart > 30 then break end
+        end
+        
         if not introActive then return end
         
         local ot = 0.5
@@ -705,15 +731,14 @@ local function playIntroAnimation()
         for _, p in ipairs(triangleRain) do
             if p.frame then tn(p.frame, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play() end
         end
-    end)
-
-    -- DESTROY EVERYTHING AT 5 SECONDS
-    task.delay(D, function()
-        introActive = false
-        uf()
-        pcall(function() if introSound and introSound.Parent then introSound:Stop(); introSound:Destroy() end end)
-        pcall(function() if introBlur and introBlur.Parent then introBlur:Destroy() end end)
-        if gui and gui.Parent then gui:Destroy() end
+        
+        task.delay(ot + 0.3, function()
+            introActive = false
+            uf()
+            pcall(function() if introBlur and introBlur.Parent then introBlur:Destroy() end end)
+            pcall(function() if introSound and introSound.Parent then introSound:Destroy() end end)
+            if gui and gui.Parent then gui:Destroy() end
+        end)
     end)
 end
 
