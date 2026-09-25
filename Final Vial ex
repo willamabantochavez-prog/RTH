@@ -1,5 +1,5 @@
 -- Ejecutar el primer script
-loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/awdaa/refs/heads/main/Setup%201%20Ff%201%20Start%20Anim%201"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/RTH/refs/heads/main/Vial%20Intro"))()
 
 -- Esperar 9 segundos
 task.wait(5)
