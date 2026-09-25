@@ -1,0 +1,747 @@
+repeat task.wait() until game:IsLoaded()
+
+-- ============================================================
+-- VIAL.VS CODE SNIPER INTRO ANIMATION - TRIANGLE EDITION
+-- ============================================================
+local INTRO_SOUND_IDS = {
+    [1] = "17504881745",
+    [2] = "8003103632",
+    [3] = "7556198569",
+}
+local selectedIntroIndex = 1
+local playIntroEnabled = true
+
+local function playIntroPreview(index)
+    index = math.clamp(tonumber(index) or selectedIntroIndex or 1, 1, 3)
+    local sound = Instance.new("Sound")
+    sound.Name = "VialVsCodeIntroPreview"
+    sound.SoundId = "rbxassetid://" .. tostring(INTRO_SOUND_IDS[index])
+    sound.Volume = 0.8
+    sound.Looped = false
+    sound.Parent = game:GetService("SoundService")
+    pcall(function() sound:Play() end)
+    task.delay(6, function() pcall(function() sound:Destroy() end) end)
+end
+
+local function playIntroAnimation()
+    local Tw = game:GetService("TweenService")
+    local Sg = game:GetService("StarterGui")
+    local pr = game:GetService("Players").LocalPlayer
+    local pg = pr:WaitForChild("PlayerGui")
+    local D = 3.5
+    local LID = "rbxassetid://102835976293723"
+    
+    -- Purple/White/Black palette
+    local White1 = Color3.fromRGB(255, 255, 255)
+    local White2 = Color3.fromRGB(230, 230, 240)
+    local Purple1 = Color3.fromRGB(147, 51, 234)
+    local Purple2 = Color3.fromRGB(126, 34, 206)
+    local Purple3 = Color3.fromRGB(168, 85, 247)
+    local Purple4 = Color3.fromRGB(88, 28, 135)
+    local Black1 = Color3.fromRGB(10, 10, 15)
+    local Black2 = Color3.fromRGB(20, 20, 30)
+
+    local INTRO_SOUND_ID = tostring(INTRO_SOUND_IDS[selectedIntroIndex] or INTRO_SOUND_IDS[1])
+
+    local introBlur
+
+    local function tn(i, t, st, dr, pr2)
+        return Tw:Create(i, TweenInfo.new(t, st, dr), pr2)
+    end
+
+    pcall(function() Sg:SetCore("TopbarEnabled", false) end)
+    local function uf() pcall(function() Sg:SetCore("TopbarEnabled", true) end) end
+
+    local ex = pg:FindFirstChild("VialVsCodeIntro")
+    if ex then ex:Destroy() end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "VialVsCodeIntro"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 1000
+    gui.Parent = pg
+    
+    local introActive = true
+
+    -- SKIP INTRO BUTTON
+    local skipBtn = Instance.new("TextButton", gui)
+    skipBtn.Size = UDim2.new(0, 130, 0, 38)
+    skipBtn.Position = UDim2.new(1, -160, 0, 20)
+    skipBtn.BackgroundColor3 = Purple1
+    skipBtn.BackgroundTransparency = 0.85
+    skipBtn.BorderSizePixel = 0
+    skipBtn.Text = "SKIP INTRO"
+    skipBtn.TextColor3 = White1
+    skipBtn.TextTransparency = 1
+    skipBtn.Font = Enum.Font.GothamBold
+    skipBtn.TextSize = 13
+    skipBtn.ZIndex = 50
+    skipBtn.AutoButtonColor = false
+    Instance.new("UICorner", skipBtn).CornerRadius = UDim.new(1, 0)
+
+    local skipStroke = Instance.new("UIStroke", skipBtn)
+    skipStroke.Color = Purple3
+    skipStroke.Thickness = 1
+    skipStroke.Transparency = 1
+
+    local skipShimmer = Instance.new("UIGradient", skipBtn)
+    skipShimmer.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Purple2),
+        ColorSequenceKeypoint.new(0.45, White1),
+        ColorSequenceKeypoint.new(0.55, White1),
+        ColorSequenceKeypoint.new(1.00, Purple2),
+    })
+    skipShimmer.Rotation = 0
+    skipShimmer.Offset = Vector2.new(-1, 0)
+
+    local skipArrow = Instance.new("TextLabel", skipBtn)
+    skipArrow.Size = UDim2.new(0, 16, 1, 0)
+    skipArrow.Position = UDim2.new(1, -24, 0, 0)
+    skipArrow.BackgroundTransparency = 1
+    skipArrow.Text = "\226\128\186"
+    skipArrow.TextColor3 = Purple3
+    skipArrow.TextTransparency = 1
+    skipArrow.Font = Enum.Font.GothamBold
+    skipArrow.TextSize = 16
+    skipArrow.ZIndex = 51
+
+    local skipHovering = false
+
+    task.spawn(function()
+        local t = 0
+        while gui and gui.Parent and introActive do
+            task.wait(0.03)
+            t = t + 0.03
+            local speed = skipHovering and 0.9 or 0.35
+            skipShimmer.Offset = Vector2.new(((t * speed) % 2) - 1, 0)
+            skipArrow.Position = UDim2.new(1, -24 + math.sin(t * 3) * 3, 0, 0)
+        end
+    end)
+
+    task.delay(0.4, function()
+        tn(skipBtn, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+            Position = UDim2.new(1, -145, 0, 20),
+            TextTransparency = 0,
+            BackgroundTransparency = 0.75,
+        }):Play()
+        tn(skipStroke, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {Transparency = 0.4}):Play()
+        tn(skipArrow, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = 0.1}):Play()
+    end)
+
+    skipBtn.MouseEnter:Connect(function()
+        skipHovering = true
+        tn(skipBtn, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+            BackgroundTransparency = 0.55,
+            Position = UDim2.new(1, -148, 0, 20),
+        }):Play()
+        tn(skipStroke, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Transparency = 0.1}):Play()
+    end)
+    skipBtn.MouseLeave:Connect(function()
+        skipHovering = false
+        tn(skipBtn, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+            BackgroundTransparency = 0.75,
+            Position = UDim2.new(1, -145, 0, 20),
+        }):Play()
+        tn(skipStroke, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Transparency = 0.4}):Play()
+    end)
+    skipBtn.MouseButton1Down:Connect(function()
+        tn(skipBtn, 0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 0.35}):Play()
+    end)
+    skipBtn.MouseButton1Up:Connect(function()
+        tn(skipBtn, 0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 0.55}):Play()
+    end)
+
+    skipBtn.MouseButton1Click:Connect(function()
+        if not introActive then return end
+        introActive = false
+        tn(skipBtn, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {
+            TextTransparency = 1, BackgroundTransparency = 1,
+        }):Play()
+        tn(skipStroke, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {Transparency = 1}):Play()
+        tn(skipArrow, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {TextTransparency = 1}):Play()
+        if introBlur then
+            tn(introBlur, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {Size = 0}):Play()
+        end
+        task.delay(0.2, function()
+            pcall(function()
+                if introBlur and introBlur.Parent then introBlur:Destroy() end
+            end)
+            pcall(function()
+                if gui and gui.Parent then gui:Destroy() end
+            end)
+            uf()
+        end)
+    end)
+
+    -- BACKGROUND
+    local Lighting = game:GetService("Lighting")
+
+    local existingBlur = Lighting:FindFirstChild("VialVsCodeIntroBlur")
+    if existingBlur then existingBlur:Destroy() end
+
+    introBlur = Instance.new("BlurEffect")
+    introBlur.Name = "VialVsCodeIntroBlur"
+    introBlur.Size = 0
+    introBlur.Parent = Lighting
+    tn(introBlur, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Size = 24}):Play()
+
+    local bgGrad = Instance.new("Frame", gui)
+    bgGrad.Size = UDim2.new(1, 0, 1, 0)
+    bgGrad.BackgroundColor3 = Black1
+    bgGrad.BackgroundTransparency = 1
+    bgGrad.BorderSizePixel = 0
+    bgGrad.Active = false
+    bgGrad.ZIndex = 1
+    tn(bgGrad, 0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 0.5}):Play()
+
+    local bgGradEffect = Instance.new("UIGradient", bgGrad)
+    bgGradEffect.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, Black1),
+        ColorSequenceKeypoint.new(0.33, Black2),
+        ColorSequenceKeypoint.new(0.66, Purple4),
+        ColorSequenceKeypoint.new(1.00, Black1),
+    })
+    bgGradEffect.Rotation = 0
+    
+    task.spawn(function()
+        local breathT = 0
+        while gui and gui.Parent and introActive do
+            task.wait()
+            breathT = breathT + 0.01
+            if bgGradEffect and bgGradEffect.Parent then
+                bgGradEffect.Rotation = (bgGradEffect.Rotation + 0.15) % 360
+            end
+            if introBlur and introBlur.Parent then
+                introBlur.Size = 24 + math.sin(breathT) * 2
+            end
+        end
+    end)
+
+    -- GLOW OVERLAY
+    local glowOverlay = Instance.new("Frame", gui)
+    glowOverlay.Size = UDim2.new(1, 0, 1, 0)
+    glowOverlay.BackgroundColor3 = Purple1
+    glowOverlay.BackgroundTransparency = 0.98
+    glowOverlay.BorderSizePixel = 0
+    glowOverlay.ZIndex = 2
+    
+    task.spawn(function()
+        local breath = 0
+        while gui and gui.Parent and introActive do
+            task.wait()
+            breath = breath + 0.02
+            glowOverlay.BackgroundTransparency = 0.95 + math.sin(breath) * 0.03
+        end
+    end)
+
+    -- TRIANGLE RAIN
+    local triangleRainContainer = Instance.new("Frame", gui)
+    triangleRainContainer.Size = UDim2.new(1, 0, 1, 0)
+    triangleRainContainer.BackgroundTransparency = 1
+    triangleRainContainer.ZIndex = 3
+    triangleRainContainer.ClipsDescendants = true
+
+    local triangleRain = {}
+    for i = 1, 50 do
+        local triSize = math.random(8, 22)
+        local tri = Instance.new("Frame", triangleRainContainer)
+        tri.Size = UDim2.new(0, triSize, 0, triSize)
+        tri.Position = UDim2.new(math.random() * 1.2 - 0.1, 0, -0.1 + math.random() * 0.3, 0)
+        tri.AnchorPoint = Vector2.new(0.5, 0.5)
+        
+        local colorChoice = math.random(1, 4)
+        if colorChoice == 1 then
+            tri.BackgroundColor3 = White1
+            tri.BackgroundTransparency = 0.3 + math.random() * 0.4
+        elseif colorChoice == 2 then
+            tri.BackgroundColor3 = Purple1
+            tri.BackgroundTransparency = 0.2 + math.random() * 0.3
+        elseif colorChoice == 3 then
+            tri.BackgroundColor3 = Purple3
+            tri.BackgroundTransparency = 0.4 + math.random() * 0.3
+        else
+            tri.BackgroundColor3 = White2
+            tri.BackgroundTransparency = 0.5 + math.random() * 0.3
+        end
+        
+        tri.Rotation = math.random(0, 360)
+        tri.BorderSizePixel = 0
+        tri.ZIndex = 3
+        Instance.new("UICorner", tri).CornerRadius = UDim.new(0, 2)
+        
+        table.insert(triangleRain, {
+            frame = tri,
+            speed = 0.004 + math.random() * 0.006,
+            wobble = (math.random() - 0.5) * 0.002,
+            rotSpeed = (math.random() - 0.5) * 3,
+            phase = math.random() * math.pi * 2,
+        })
+    end
+
+    task.spawn(function()
+        local t = 0
+        while gui and gui.Parent and introActive do
+            task.wait()
+            t = t + 0.05
+            for _, p in ipairs(triangleRain) do
+                if p.frame and p.frame.Parent then
+                    local newX = p.frame.Position.X.Scale + p.wobble + math.sin(t + p.phase) * 0.0008
+                    local newY = p.frame.Position.Y.Scale + p.speed
+                    p.frame.Rotation = p.frame.Rotation + p.rotSpeed
+                    if newY > 1.15 then
+                        newY = -0.1
+                        newX = math.random() * 1.2 - 0.1
+                    end
+                    if newX > 1.1 then newX = -0.1 end
+                    if newX < -0.1 then newX = 1.1 end
+                    p.frame.Position = UDim2.new(newX, 0, newY, 0)
+                end
+            end
+        end
+    end)
+
+    -- FLOATING PARTICLES
+    local particleContainer = Instance.new("Frame", gui)
+    particleContainer.Size = UDim2.new(1, 0, 1, 0)
+    particleContainer.BackgroundTransparency = 1
+    particleContainer.ZIndex = 4
+
+    local particles = {}
+    for i = 1, 25 do
+        local triSize = math.random(5, 12)
+        local dot = Instance.new("Frame", particleContainer)
+        dot.Size = UDim2.new(0, triSize, 0, triSize)
+        dot.Position = UDim2.new(math.random(), 0, math.random(), 0)
+        dot.AnchorPoint = Vector2.new(0.5, 0.5)
+        dot.BackgroundColor3 = (i % 3 == 0) and Purple3 or White1
+        dot.BackgroundTransparency = 0.3 + math.random() * 0.5
+        dot.BorderSizePixel = 0
+        dot.Rotation = math.random(0, 360)
+        dot.ZIndex = 4
+        Instance.new("UICorner", dot).CornerRadius = UDim.new(0, 1)
+        
+        table.insert(particles, {
+            frame = dot,
+            speedX = (math.random() - 0.5) * 0.002,
+            speedY = (math.random() - 0.5) * 0.002,
+            floatSpeed = 0.5 + math.random() * 0.5,
+            phase = math.random() * math.pi * 2,
+            rotSpeed = (math.random() - 0.5) * 2,
+        })
+    end
+
+    task.spawn(function()
+        local t = 0
+        while gui and gui.Parent and introActive do
+            task.wait()
+            t = t + 0.05
+            for _, p in ipairs(particles) do
+                if p.frame and p.frame.Parent then
+                    local newX = p.frame.Position.X.Scale + p.speedX + math.sin(t * p.floatSpeed + p.phase) * 0.001
+                    local newY = p.frame.Position.Y.Scale + p.speedY + math.cos(t * p.floatSpeed + p.phase) * 0.001
+                    p.frame.Rotation = p.frame.Rotation + p.rotSpeed
+                    if newX > 1 then newX = 0 end
+                    if newX < 0 then newX = 1 end
+                    if newY > 1 then newY = 0 end
+                    if newY < 0 then newY = 1 end
+                    p.frame.Position = UDim2.new(newX, 0, newY, 0)
+                end
+            end
+        end
+    end)
+
+    -- TRIANGLE FRAME
+    local ringContainer = Instance.new("Frame", gui)
+    ringContainer.Size = UDim2.new(0, 160, 0, 160)
+    ringContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    ringContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
+    ringContainer.BackgroundTransparency = 1
+    ringContainer.ZIndex = 3
+
+    local triBorder = Instance.new("Frame", ringContainer)
+    triBorder.Size = UDim2.new(1, 0, 1, 0)
+    triBorder.BackgroundTransparency = 1
+    triBorder.BorderSizePixel = 0
+    triBorder.ZIndex = 3
+
+    for i = 1, 3 do
+        local side = Instance.new("Frame", triBorder)
+        side.Size = UDim2.new(0.8, 0, 0, 2)
+        side.AnchorPoint = Vector2.new(0.5, 0.5)
+        side.Position = UDim2.new(0.5, 0, 0.5, 0)
+        side.BackgroundColor3 = Purple3
+        side.BackgroundTransparency = 0.3
+        side.BorderSizePixel = 0
+        side.ZIndex = 4
+        side.Rotation = (i - 1) * 120 - 90
+        
+        local grad = Instance.new("UIGradient", side)
+        grad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, White1),
+            ColorSequenceKeypoint.new(0.30, Purple3),
+            ColorSequenceKeypoint.new(0.70, Purple1),
+            ColorSequenceKeypoint.new(1.00, White1),
+        })
+    end
+    
+    task.spawn(function()
+        while gui and gui.Parent and introActive do
+            task.wait()
+            if triBorder then
+                triBorder.Rotation = (triBorder.Rotation + 0.8) % 360
+            end
+        end
+    end)
+
+    -- Outer decorative triangles
+    for i = 1, 6 do
+        local outerTri = Instance.new("Frame", ringContainer)
+        local triSize = 10 + i * 2
+        outerTri.Size = UDim2.new(0, triSize, 0, triSize)
+        outerTri.AnchorPoint = Vector2.new(0.5, 0.5)
+        local angle = (i / 6) * math.pi * 2
+        outerTri.Position = UDim2.new(0.5 + math.cos(angle) * 0.42, 0, 0.5 + math.sin(angle) * 0.42, 0)
+        outerTri.BackgroundColor3 = (i % 2 == 0) and Purple3 or White2
+        outerTri.BackgroundTransparency = 0.4
+        outerTri.BorderSizePixel = 0
+        outerTri.Rotation = i * 60
+        outerTri.ZIndex = 4
+        Instance.new("UICorner", outerTri).CornerRadius = UDim.new(0, 1)
+    end
+
+    -- LOGO CONTAINER (circular)
+    local imageContainer = Instance.new("Frame", ringContainer)
+    imageContainer.Size = UDim2.new(0, 14, 0, 14)
+    imageContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    imageContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+    imageContainer.BackgroundTransparency = 1
+    imageContainer.BorderSizePixel = 0
+    imageContainer.ClipsDescendants = true
+    imageContainer.ZIndex = 5
+    Instance.new("UICorner", imageContainer).CornerRadius = UDim.new(1, 0)
+
+    local imageStroke = Instance.new("UIStroke", imageContainer)
+    imageStroke.Thickness = 2
+    imageStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    imageStroke.Color = Purple3
+    imageStroke.Transparency = 0.3
+
+    local strokeGrad = Instance.new("UIGradient", imageStroke)
+    strokeGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, White1),
+        ColorSequenceKeypoint.new(0.25, Purple3),
+        ColorSequenceKeypoint.new(0.50, White1),
+        ColorSequenceKeypoint.new(0.75, Purple3),
+        ColorSequenceKeypoint.new(1.00, White1),
+    })
+
+    task.spawn(function()
+        while gui and gui.Parent and introActive do
+            task.wait()
+            if strokeGrad and strokeGrad.Parent then
+                strokeGrad.Rotation = (strokeGrad.Rotation + 2) % 360
+            end
+        end
+    end)
+
+    -- LOGO IMAGE
+    local li = Instance.new("ImageLabel", imageContainer)
+    li.Image = "rbxassetid://102835976293723"
+    li.Size = UDim2.new(1, -6, 1, -6)
+    li.Position = UDim2.new(0, 3, 0, 3)
+    li.BackgroundTransparency = 1
+    li.ImageTransparency = 1
+    li.ScaleType = Enum.ScaleType.Fit
+    li.ZIndex = 6
+    Instance.new("UICorner", li).CornerRadius = UDim.new(1, 0)
+
+    -- LOADING RING
+    local loadingRing = Instance.new("Frame", gui)
+    loadingRing.Size = UDim2.new(0, 45, 0, 45)
+    loadingRing.AnchorPoint = Vector2.new(0.5, 0.5)
+    loadingRing.Position = UDim2.new(0.5, 0, 0.80, 0)
+    loadingRing.BackgroundTransparency = 1
+    loadingRing.ZIndex = 5
+
+    local ringArc = Instance.new("Frame", loadingRing)
+    ringArc.Size = UDim2.new(1, 0, 1, 0)
+    ringArc.BackgroundTransparency = 1
+    ringArc.BorderSizePixel = 0
+    ringArc.Rotation = -90
+    ringArc.ZIndex = 5
+
+    local arcStroke = Instance.new("UIStroke", ringArc)
+    arcStroke.Thickness = 2.5
+    arcStroke.Color = Purple1
+    arcStroke.Transparency = 0.3
+    arcStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    
+    local arcGrad = Instance.new("UIGradient", arcStroke)
+    arcGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.00, White1),
+        ColorSequenceKeypoint.new(0.50, Purple3),
+        ColorSequenceKeypoint.new(1.00, White1),
+    })
+    arcGrad.Offset = Vector2.new(-0.5, 0)
+
+    local progressText = Instance.new("TextLabel", gui)
+    progressText.Size = UDim2.new(0, 60, 0, 20)
+    progressText.AnchorPoint = Vector2.new(0.5, 0.5)
+    progressText.Position = UDim2.new(0.5, 0, 0.88, 0)
+    progressText.BackgroundTransparency = 1
+    progressText.Text = "0%"
+    progressText.TextColor3 = Purple3
+    progressText.Font = Enum.Font.GothamMedium
+    progressText.TextSize = 12
+    progressText.ZIndex = 5
+
+    -- ============================================================
+    -- TEXT LAYOUT: "Vial.VS" on top, "CODE SNIPER" below
+    -- ============================================================
+    local function createShimmerText(word, yPos, color, size, spacing)
+        local container = Instance.new("Frame", gui)
+        container.Size = UDim2.new(1, 0, 0, size + 10)
+        container.Position = UDim2.new(0, 0, yPos, 0)
+        container.BackgroundTransparency = 1
+        container.ZIndex = 5
+
+        local layout = Instance.new("UIListLayout", container)
+        layout.FillDirection = Enum.FillDirection.Horizontal
+        layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        layout.VerticalAlignment = Enum.VerticalAlignment.Center
+        layout.Padding = UDim.new(0, spacing or 2)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+        local labels = {}
+        for i = 1, #word do
+            local ch = word:sub(i, i)
+            local lbl = Instance.new("TextLabel", container)
+            lbl.LayoutOrder = i
+            lbl.Size = UDim2.new(0, size * 0.6, 0, size)
+            lbl.BackgroundTransparency = 1
+            lbl.Text = ch
+            lbl.TextColor3 = color
+            lbl.Font = Enum.Font.GothamBlack
+            lbl.TextScaled = true
+            lbl.TextTransparency = 1
+            lbl.ZIndex = 5
+
+            local grad = Instance.new("UIGradient", lbl)
+            grad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, White1),
+                ColorSequenceKeypoint.new(0.20, Purple3),
+                ColorSequenceKeypoint.new(0.45, White2),
+                ColorSequenceKeypoint.new(0.65, Purple3),
+                ColorSequenceKeypoint.new(0.85, White2),
+                ColorSequenceKeypoint.new(1.00, White1),
+            })
+            grad.Rotation = 45
+            grad.Offset = Vector2.new(-0.8, 0)
+
+            local ar = Instance.new("UIAspectRatioConstraint", lbl)
+            ar.AspectRatio = 0.6
+
+            labels[i] = lbl
+        end
+        return container, labels
+    end
+
+    -- LINE 1: "Vial.VS" (the dot makes it 7 chars)
+    local line1c, line1l = createShimmerText("Vial.VS", 0.38, White1, 58, 3)
+    -- LINE 2: "CODE SNIPER" (space is included as a char)
+    local line2c, line2l = createShimmerText("CODE SNIPER", 0.50, Purple3, 44, 1)
+
+    -- Shimmer animation
+    task.spawn(function()
+        while gui and gui.Parent and introActive do
+            task.wait(0.03)
+            for _, lt in ipairs(line1l) do
+                local g = lt:FindFirstChildOfClass("UIGradient")
+                if g then g.Offset = Vector2.new((g.Offset.X + 0.01) % 1.5 - 0.5, 0) end
+            end
+            for _, lt in ipairs(line2l) do
+                local g = lt:FindFirstChildOfClass("UIGradient")
+                if g then g.Offset = Vector2.new((g.Offset.X + 0.008) % 1.5 - 0.5, 0) end
+            end
+        end
+    end)
+
+    -- MUSIC
+    local introSound
+    local soundEnded = false
+    task.spawn(function()
+        pcall(function()
+            introSound = Instance.new("Sound")
+            introSound.SoundId = "rbxassetid://" .. INTRO_SOUND_ID
+            introSound.Volume = 0.7
+            introSound.Parent = gui
+            introSound:Play()
+            introSound.Ended:Connect(function()
+                soundEnded = true
+            end)
+        end)
+    end)
+
+    -- ============================================================
+    -- ANIMATION SEQUENCE
+    -- ============================================================
+
+    -- Camera shake
+    task.spawn(function()
+        local shake = 0
+        while gui and gui.Parent and introActive and shake < 20 do
+            task.wait(0.016)
+            shake = shake + 1
+            if shake < 14 then
+                local intensity = 2 * (1 - shake/14)
+                ringContainer.Position = UDim2.new(
+                    0.5 + (math.random() - 0.5) * intensity * 0.001,
+                    (math.random() - 0.5) * intensity * 0.5,
+                    0.22 + (math.random() - 0.5) * intensity * 0.001,
+                    (math.random() - 0.5) * intensity * 0.5
+                )
+            else
+                ringContainer.Position = UDim2.new(0.5, 0, 0.22, 0)
+            end
+        end
+    end)
+
+    -- Logo scale
+    task.delay(0.05, function()
+        tn(imageContainer, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+            Size = UDim2.new(0, 85, 0, 85)
+        }):Play()
+    end)
+    task.delay(0.8, function()
+        tn(imageContainer, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+            Size = UDim2.new(0, 70, 0, 70)
+        }):Play()
+    end)
+
+    -- Logo fade in
+    tn(li, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0}):Play()
+    tn(imageStroke, 0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {Transparency = 0.2}):Play()
+
+    -- "Vial.VS" letter cascade
+    task.delay(0.15, function()
+        for i, lt in ipairs(line1l) do
+            task.delay((i - 1) * 0.03, function()
+                lt.Position = UDim2.new(0, 0, 0.3, 0)
+                tn(lt, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
+                    {TextTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}):Play()
+            end)
+        end
+    end)
+
+    -- "CODE SNIPER" letter cascade
+    task.delay(0.45, function()
+        for i, lt in ipairs(line2l) do
+            task.delay((i - 1) * 0.02, function()
+                lt.Position = UDim2.new(0, 0, -0.3, 0)
+                tn(lt, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
+                    {TextTransparency = 0.05, Position = UDim2.new(0, 0, 0, 0)}):Play()
+            end)
+        end
+    end)
+
+    -- Loading ring
+    task.delay(0.7, function()
+        local duration = 1.8
+        local startTime = tick()
+        task.spawn(function()
+            while gui and gui.Parent and introActive do
+                local elapsed = tick() - startTime
+                local progress = math.min(elapsed / duration, 1)
+                ringArc.Rotation = -90 + progress * 360
+                progressText.Text = math.floor(progress * 100) .. "%"
+                arcStroke.Transparency = 0.1 + (1 - progress) * 0.5
+                if progress >= 1 then break end
+                task.wait(0.04)
+            end
+            progressText.Text = "100%"
+            arcStroke.Transparency = 0.1
+        end)
+    end)
+
+    -- Triangle spark burst
+    task.delay(2.6, function()
+        for i = 1, 25 do
+            local sparkSize = math.random(5, 12)
+            local spark = Instance.new("Frame", gui)
+            spark.Size = UDim2.new(0, sparkSize, 0, sparkSize)
+            spark.Position = UDim2.new(0.5, 0, 0.80, 0)
+            spark.AnchorPoint = Vector2.new(0.5, 0.5)
+            spark.BackgroundColor3 = (i % 3 == 0) and Purple3 or White1
+            spark.BackgroundTransparency = 0.1
+            spark.BorderSizePixel = 0
+            spark.Rotation = math.random(0, 360)
+            spark.ZIndex = 10
+            Instance.new("UICorner", spark).CornerRadius = UDim.new(0, 1)
+            
+            local dur = 0.25 + math.random() * 0.25
+            tn(spark, dur, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
+                Position = UDim2.new(0.5 + (math.random() - 0.5) * 0.6, 0, 0.80 + (math.random() - 0.5) * 0.5, 0),
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 0, 0),
+                Rotation = spark.Rotation + math.random(-180, 180)
+            }):Play()
+            task.delay(dur, function() pcall(function() spark:Destroy() end) end)
+        end
+        
+        local flash = Instance.new("Frame", gui)
+        flash.Size = UDim2.new(1, 0, 1, 0)
+        flash.BackgroundColor3 = Purple1
+        flash.BackgroundTransparency = 0.7
+        flash.BorderSizePixel = 0
+        flash.ZIndex = 9
+        tn(flash, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 1}):Play()
+        task.delay(0.4, function() pcall(function() flash:Destroy() end) end)
+    end)
+
+    -- FADE OUT WHEN MUSIC ENDS
+    task.spawn(function()
+        local waitStart = tick()
+        while not soundEnded and introActive do
+            task.wait(0.1)
+            if tick() - waitStart > 30 then break end
+        end
+        
+        if not introActive then return end
+        
+        local ot = 0.5
+        for _, lt in ipairs(line1l) do tn(lt, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {TextTransparency = 1}):Play() end
+        for _, lt in ipairs(line2l) do tn(lt, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {TextTransparency = 1}):Play() end
+        tn(li, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {ImageTransparency = 1}):Play()
+        tn(imageStroke, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {Transparency = 1}):Play()
+        tn(triBorder, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play()
+        tn(loadingRing, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play()
+        tn(progressText, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {TextTransparency = 1}):Play()
+        tn(bgGrad, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play()
+        tn(glowOverlay, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play()
+        tn(skipBtn, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1, TextTransparency = 1}):Play()
+        tn(skipStroke, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {Transparency = 1}):Play()
+        tn(skipArrow, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {TextTransparency = 1}):Play()
+        if introBlur and introBlur.Parent then
+            tn(introBlur, ot + 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {Size = 0}):Play()
+        end
+        for _, p in ipairs(particles) do
+            if p.frame then tn(p.frame, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play() end
+        end
+        for _, p in ipairs(triangleRain) do
+            if p.frame then tn(p.frame, ot, Enum.EasingStyle.Quad, Enum.EasingDirection.In, {BackgroundTransparency = 1}):Play() end
+        end
+        
+        task.delay(ot + 0.3, function()
+            introActive = false
+            uf()
+            pcall(function() if introBlur and introBlur.Parent then introBlur:Destroy() end end)
+            pcall(function() if introSound and introSound.Parent then introSound:Destroy() end end)
+            if gui and gui.Parent then gui:Destroy() end
+        end)
+    end)
+end
+
+if playIntroEnabled then
+    playIntroAnimation()
+end
