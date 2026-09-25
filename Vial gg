@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- VAIL — Code Sniper v1.2
 -- By: hskery50
--- https://dc.gg/vail.vs
+-- discord.gg/PGYSEVHV72
 -- ═══════════════════════════════════════════════════════════════════
 
 local Players           = game:GetService("Players")
@@ -144,7 +144,7 @@ local Gui = new("ScreenGui", {
 runtime.gui = Gui
 
 -- ═══════════════════════════════
--- WINDOW (sin accent line)
+-- WINDOW
 -- ═══════════════════════════════
 local Window = new("Frame", {
     Name="Win",
@@ -265,7 +265,7 @@ task.spawn(function()
 end)
 
 -- ═══════════════════════════════
--- HEADER (solo Settings + Minimize)
+-- HEADER
 -- ═══════════════════════════════
 local HDR_H = 44
 
@@ -313,7 +313,7 @@ local vTag = new("TextLabel", {
 }, Header)
 corner(vTag, 3)
 
--- header buttons: solo [Settings] [−]
+-- header buttons: [Settings] [−]
 local BTN_HDR_H = 22
 local HDR_GAP = 6
 
@@ -440,9 +440,9 @@ local function makeActionBtn(text, x, primary)
     return b
 end
 
-local ClearBtn      = makeActionBtn("Clear", 0, false)
-local RedeemBtn     = makeActionBtn("Redeem", BTN_W + BTN_GAP, true)
-local StartBtn      = makeActionBtn("Start", (BTN_W + BTN_GAP) * 2, false)
+local ClearBtn  = makeActionBtn("Clear", 0, false)
+local RedeemBtn = makeActionBtn("Redeem", BTN_W + BTN_GAP, true)
+local StartBtn  = makeActionBtn("Start", (BTN_W + BTN_GAP) * 2, false)
 
 -- ═══════════════════════════════
 -- TOGGLE ROWS
@@ -606,7 +606,7 @@ new("TextLabel", {
     Size=UDim2.new(1, -PAD*2, 0, 14),
     Position=UDim2.new(0, PAD, 0, FT_Y + 1),
     BackgroundTransparency=1,
-    Text="|  by hskery50  | Discord - dc.gg/vail.vs",
+    Text="by hskery50  |  discord - dc.gg/vail.vs",
     TextColor3=C.textMut,
     Font=Enum.Font.GothamMedium,
     TextSize=7,
@@ -650,7 +650,7 @@ connect(UserInputService.InputEnded, function(i)
 end)
 
 -- ═══════════════════════════════
--- START VISUAL (solo el boton de acciones)
+-- START VISUAL
 -- ═══════════════════════════════
 local function syncStartVisual()
     if runtime.enabled then
