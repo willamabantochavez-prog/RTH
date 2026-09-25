@@ -1,7 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- VAIL — Code Sniper v1.2
 -- By: hskery50
--- discord.gg/PGYSEVHV72
+-- discord - dc.gg/vail.vs
+-- Font: FredokaOne (rounded, playful)
 -- ═══════════════════════════════════════════════════════════════════
 
 local Players           = game:GetService("Players")
@@ -45,6 +46,11 @@ local runtime = {
     backgroundEnabled=true,
 }
 environment[RUNTIME_KEY] = runtime
+
+-- ═══════════════════════════════
+-- FONT (FredokaOne everywhere)
+-- ═══════════════════════════════
+local FONT = Enum.Font.FredokaOne
 
 -- ═══════════════════════════════
 -- UTILS
@@ -293,7 +299,7 @@ new("TextLabel", {
     BackgroundTransparency=1,
     Text="Vail",
     TextColor3=C.text,
-    Font=Enum.Font.GothamBlack,
+    Font=FONT,
     TextSize=14,
     TextXAlignment=Enum.TextXAlignment.Left,
     ZIndex=7,
@@ -307,7 +313,7 @@ local vTag = new("TextLabel", {
     BackgroundTransparency=0.3,
     Text="v1.2",
     TextColor3=C.accent,
-    Font=Enum.Font.GothamBold,
+    Font=FONT,
     TextSize=7,
     ZIndex=7,
 }, Header)
@@ -325,7 +331,7 @@ local MinBtn = new("TextButton", {
     BackgroundTransparency=0.1,
     Text="-",
     TextColor3=C.textMut,
-    Font=Enum.Font.GothamMedium,
+    Font=FONT,
     TextSize=15,
     AutoButtonColor=false,
     BorderSizePixel=0,
@@ -342,7 +348,7 @@ local SettingsBtn = new("TextButton", {
     BackgroundTransparency=0.1,
     Text="Settings",
     TextColor3=C.textSec,
-    Font=Enum.Font.GothamBold,
+    Font=FONT,
     TextSize=8,
     AutoButtonColor=false,
     BorderSizePixel=0,
@@ -393,7 +399,7 @@ local ConOut = new("TextLabel", {
     RichText=true,
     Text='<font color="#8a8ea8">Ready</font>',
     TextColor3=C.textSec,
-    Font=Enum.Font.GothamMedium,
+    Font=FONT,
     TextSize=9,
     TextWrapped=true,
     TextYAlignment=Enum.TextYAlignment.Center,
@@ -429,7 +435,7 @@ local function makeActionBtn(text, x, primary)
         BackgroundTransparency = primary and 0.1 or 0.05,
         Text = text,
         TextColor3 = primary and C.accent or C.textSec,
-        Font = Enum.Font.GothamBold,
+        Font = FONT,
         TextSize = 9,
         AutoButtonColor=false,
         BorderSizePixel=0,
@@ -471,7 +477,7 @@ local function makeToggleRow(label)
         BackgroundTransparency=1,
         Text=label,
         TextColor3=C.text,
-        Font=Enum.Font.GothamMedium,
+        Font=FONT,
         TextSize=10,
         TextXAlignment=Enum.TextXAlignment.Left,
         ZIndex=7,
@@ -482,7 +488,7 @@ local function makeToggleRow(label)
         BackgroundColor3=C.surface,
         Text="OFF",
         TextColor3=C.red,
-        Font=Enum.Font.GothamBold,
+        Font=FONT,
         TextSize=8,
         AutoButtonColor=false,
         BorderSizePixel=0,
@@ -534,7 +540,7 @@ new("TextLabel", {
     BackgroundTransparency=1,
     Text="Submit After",
     TextColor3=C.text,
-    Font=Enum.Font.GothamMedium,
+    Font=FONT,
     TextSize=10,
     TextXAlignment=Enum.TextXAlignment.Left,
     ZIndex=7,
@@ -556,7 +562,7 @@ local CtrMin = new("TextButton", {
     BackgroundTransparency=0.3,
     Text="-",
     TextColor3=C.textSec,
-    Font=Enum.Font.GothamBold,
+    Font=FONT,
     TextSize=12,
     AutoButtonColor=false,
     BorderSizePixel=0,
@@ -569,7 +575,7 @@ local CtrLbl = new("TextLabel", {
     BackgroundTransparency=1,
     Text="1",
     TextColor3=C.text,
-    Font=Enum.Font.GothamBold,
+    Font=FONT,
     TextSize=10,
     ZIndex=9,
 }, CtrBox)
@@ -580,7 +586,7 @@ local CtrPlus = new("TextButton", {
     BackgroundTransparency=0.3,
     Text="+",
     TextColor3=C.textSec,
-    Font=Enum.Font.GothamBold,
+    Font=FONT,
     TextSize=12,
     AutoButtonColor=false,
     BorderSizePixel=0,
@@ -608,7 +614,7 @@ new("TextLabel", {
     BackgroundTransparency=1,
     Text="by hskery50  |  discord - dc.gg/vail.vs",
     TextColor3=C.textMut,
-    Font=Enum.Font.GothamMedium,
+    Font=FONT,
     TextSize=7,
     TextXAlignment=Enum.TextXAlignment.Center,
     ZIndex=6,
@@ -705,7 +711,7 @@ local function createHeadDisplay()
         BackgroundTransparency=1,
         Text="dc.gg/vail.vs",
         TextColor3=C.accent,
-        Font=Enum.Font.GothamBold,
+        Font=FONT,
         TextScaled=true,
         ZIndex=1,
     }, bb)
@@ -766,7 +772,7 @@ local function createSettingsMenu()
         BackgroundTransparency=1,
         Text="Settings",
         TextColor3=C.text,
-        Font=Enum.Font.GothamBold,
+        Font=FONT,
         TextSize=12,
         TextXAlignment=Enum.TextXAlignment.Left,
         ZIndex=17,
@@ -778,7 +784,7 @@ local function createSettingsMenu()
         BackgroundTransparency=0.1,
         Text="x",
         TextColor3=C.textMut,
-        Font=Enum.Font.GothamBold,
+        Font=FONT,
         TextSize=13,
         AutoButtonColor=false,
         BorderSizePixel=0,
@@ -821,7 +827,7 @@ local function createSettingsMenu()
             BackgroundTransparency=1,
             Text=label,
             TextColor3=C.text,
-            Font=Enum.Font.GothamMedium,
+            Font=FONT,
             TextSize=9,
             TextXAlignment=Enum.TextXAlignment.Left,
             ZIndex=18,
@@ -832,7 +838,7 @@ local function createSettingsMenu()
             BackgroundColor3 = default and C.greenBg or C.surface,
             Text = default and "ON" or "OFF",
             TextColor3 = default and C.green or C.red,
-            Font=Enum.Font.GothamBold,
+            Font=FONT,
             TextSize=8,
             AutoButtonColor=false,
             BorderSizePixel=0,
@@ -853,7 +859,7 @@ local function createSettingsMenu()
             BackgroundTransparency=1,
             Text=text,
             TextColor3=C.textMut,
-            Font=Enum.Font.GothamBold,
+            Font=FONT,
             TextSize=7,
             TextXAlignment=Enum.TextXAlignment.Center,
             LayoutOrder=order,
@@ -877,7 +883,7 @@ local function createSettingsMenu()
             BackgroundTransparency=1,
             Text=label,
             TextColor3=C.textSec,
-            Font=Enum.Font.GothamMedium,
+            Font=FONT,
             TextSize=8,
             TextXAlignment=Enum.TextXAlignment.Left,
             ZIndex=18,
@@ -888,7 +894,7 @@ local function createSettingsMenu()
             BackgroundColor3=C.surface,
             Text="Copy",
             TextColor3=C.accent,
-            Font=Enum.Font.GothamBold,
+            Font=FONT,
             TextSize=8,
             AutoButtonColor=false,
             BorderSizePixel=0,
