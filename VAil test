@@ -92,63 +92,63 @@ local setupvalue_fn  = (debug and type(debug.setupvalue)=="function" and debug.s
 local RGB = Color3.fromRGB
 local THEMES = {
     {
-        name="Cosmic", image="129795477038812", imgTrans=0.88,
-        hueMin=200, hueMax=280,
+        name="Monochrome", image="129795477038812", imgTrans=0.73,
+        hueMin=0, hueMax=0,
         c={
-            bg=RGB(13,13,17),surface=RGB(20,20,26),card=RGB(26,26,34),
-            elevated=RGB(32,32,42),accent=RGB(140,160,255),accentDk=RGB(38,42,70),
-            text=RGB(228,230,242),textSec=RGB(145,150,175),textMut=RGB(72,76,98),
-            green=RGB(80,210,130),greenBg=RGB(20,48,32),red=RGB(225,75,90),
-            redBg=RGB(48,18,22),border=RGB(36,36,48),divider=RGB(40,40,54),
-            conBg=RGB(9,9,13),
+            bg=RGB(14,14,14),surface=RGB(22,22,22),card=RGB(30,30,30),
+            elevated=RGB(38,38,38),accent=RGB(210,210,210),accentDk=RGB(50,50,50),
+            text=RGB(235,235,235),textSec=RGB(170,170,170),textMut=RGB(90,90,90),
+            green=RGB(180,220,180),greenBg=RGB(35,50,35),red=RGB(220,100,100),
+            redBg=RGB(50,22,22),border=RGB(45,45,45),divider=RGB(50,50,50),
+            conBg=RGB(10,10,10),
         },
     },
     {
-        name="Ocean", image="100090135396228", imgTrans=0.82,
-        hueMin=170, hueMax=220,
+        name="Crimson", image="100090135396228", imgTrans=0.67,
+        hueMin=345, hueMax=375,
         c={
-            bg=RGB(10,14,20),surface=RGB(16,22,32),card=RGB(22,30,42),
-            elevated=RGB(28,38,52),accent=RGB(80,180,240),accentDk=RGB(22,45,65),
-            text=RGB(220,235,250),textSec=RGB(130,155,185),textMut=RGB(60,75,100),
-            green=RGB(80,210,150),greenBg=RGB(18,45,35),red=RGB(230,80,100),
-            redBg=RGB(50,20,25),border=RGB(30,40,55),divider=RGB(35,45,60),
-            conBg=RGB(8,10,16),
+            bg=RGB(18,10,12),surface=RGB(30,16,20),card=RGB(40,22,26),
+            elevated=RGB(50,28,32),accent=RGB(235,60,75),accentDk=RGB(70,20,28),
+            text=RGB(250,225,228),textSec=RGB(190,140,150),textMut=RGB(110,65,72),
+            green=RGB(130,220,130),greenBg=RGB(30,50,30),red=RGB(235,70,85),
+            redBg=RGB(55,18,22),border=RGB(55,28,34),divider=RGB(60,32,38),
+            conBg=RGB(12,6,8),
         },
     },
     {
-        name="Crimson", image="128212570011805", imgTrans=0.85,
-        hueMin=340, hueMax=380,
+        name="Verdant", image="128212570011805", imgTrans=0.70,
+        hueMin=95, hueMax=155,
         c={
-            bg=RGB(18,11,13),surface=RGB(28,18,22),card=RGB(36,24,28),
-            elevated=RGB(44,30,35),accent=RGB(240,80,100),accentDk=RGB(65,22,30),
-            text=RGB(245,225,230),textSec=RGB(180,145,155),textMut=RGB(100,70,78),
-            green=RGB(120,210,130),greenBg=RGB(28,48,32),red=RGB(230,75,90),
-            redBg=RGB(52,18,22),border=RGB(50,30,36),divider=RGB(55,35,40),
-            conBg=RGB(12,8,9),
+            bg=RGB(10,16,12),surface=RGB(16,28,20),card=RGB(22,36,26),
+            elevated=RGB(28,46,32),accent=RGB(70,215,120),accentDk=RGB(20,60,35),
+            text=RGB(225,248,232),textSec=RGB(135,178,148),textMut=RGB(60,90,70),
+            green=RGB(70,210,120),greenBg=RGB(18,50,30),red=RGB(225,80,95),
+            redBg=RGB(48,20,24),border=RGB(32,50,38),divider=RGB(36,55,42),
+            conBg=RGB(7,12,9),
         },
     },
     {
-        name="Emerald", image="125073471896905", imgTrans=0.80,
-        hueMin=100, hueMax=160,
+        name="Azure Rose", image="125073471896905", imgTrans=0.65,
+        hueMin=200, hueMax=310,
         c={
-            bg=RGB(11,16,13),surface=RGB(18,26,20),card=RGB(24,34,28),
-            elevated=RGB(30,42,35),accent=RGB(80,220,140),accentDk=RGB(22,55,35),
-            text=RGB(225,245,230),textSec=RGB(140,170,150),textMut=RGB(65,85,72),
-            green=RGB(80,210,130),greenBg=RGB(20,48,32),red=RGB(225,80,95),
-            redBg=RGB(48,20,24),border=RGB(32,45,36),divider=RGB(35,50,40),
-            conBg=RGB(8,12,10),
+            bg=RGB(12,12,18),surface=RGB(20,20,30),card=RGB(28,26,38),
+            elevated=RGB(34,32,48),accent=RGB(100,140,255),accentDk=RGB(28,35,70),
+            text=RGB(235,228,248),textSec=RGB(155,148,190),textMut=RGB(78,72,105),
+            green=RGB(90,210,140),greenBg=RGB(22,48,35),red=RGB(230,80,130),
+            redBg=RGB(52,18,30),border=RGB(42,38,60),divider=RGB(48,42,68),
+            conBg=RGB(9,8,14),
         },
     },
     {
-        name="Sunset", image="126435022530070", imgTrans=0.78,
-        hueMin=20, hueMax=50,
+        name="Sakura", image="126435022530070", imgTrans=0.63,
+        hueMin=300, hueMax=340,
         c={
-            bg=RGB(18,15,10),surface=RGB(28,24,16),card=RGB(36,30,20),
-            elevated=RGB(44,38,26),accent=RGB(255,180,60),accentDk=RGB(65,50,18),
-            text=RGB(248,240,225),textSec=RGB(185,170,145),textMut=RGB(100,88,65),
-            green=RGB(100,210,130),greenBg=RGB(25,48,30),red=RGB(230,85,90),
-            redBg=RGB(52,22,20),border=RGB(50,42,28),divider=RGB(55,48,32),
-            conBg=RGB(12,10,7),
+            bg=RGB(18,12,16),surface=RGB(28,18,24),card=RGB(38,24,32),
+            elevated=RGB(48,30,40),accent=RGB(240,110,175),accentDk=RGB(68,24,45),
+            text=RGB(250,230,242),textSec=RGB(192,150,172),textMut=RGB(108,70,90),
+            green=RGB(120,215,140),greenBg=RGB(28,48,32),red=RGB(235,75,110),
+            redBg=RGB(52,18,26),border=RGB(55,34,48),divider=RGB(60,38,52),
+            conBg=RGB(12,8,10),
         },
     },
 }
@@ -197,7 +197,7 @@ local Content = new("Frame", {
     Name="Content", Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, ZIndex=5,
 }, Window)
 
--- ═══════ PARTICLES (theme-aware hue) ═══════
+-- ═══════ PARTICLES ═══════
 local P_TEXTURES = {
     "rbxassetid://5833235272","rbxassetid://5833323391",
     "rbxassetid://5857892330","rbxassetid://5857851618","rbxassetid://6711256324",
@@ -213,9 +213,14 @@ local function spawnParticle()
     local driftX = math.random(-25,25)/10
     local riseSpeed = 40+math.random(15,55)
     local theme = THEMES[runtime.currentTheme]
-    local hue = (theme.hueMin + math.random()*(theme.hueMax-theme.hueMin))/360
-    local sat = 0.35+math.random()*0.35
-    local val = 0.85+math.random()*0.15
+    local hue, sat, val
+    if theme.hueMin == 0 and theme.hueMax == 0 then
+        hue = 0; sat = 0; val = 0.6+math.random()*0.4
+    else
+        hue = (theme.hueMin + math.random()*(theme.hueMax-theme.hueMin))/360
+        sat = 0.35+math.random()*0.35
+        val = 0.85+math.random()*0.15
+    end
     local tint = Color3.fromHSV(hue%1, sat, val)
     local p = new("ImageLabel", {
         Size=UDim2.new(0,size,0,size), Position=UDim2.new(0,startX,0,startY),
