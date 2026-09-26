@@ -1044,5 +1044,6 @@ _G.Vail = {
     SetCode=function(c) runtime.lastCode=c end,
     Redeem=function() if runtime.lastCode then processCode(runtime.lastCode) end end,
     SetTheme=applyTheme,
+    Announce=function(text) pcall(onAnnouncement, text) end,
     Destroy=runtime.destroy,
 }
