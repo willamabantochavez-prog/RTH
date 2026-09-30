@@ -153,3 +153,738 @@ pcall(function()
 
     print("[LOADER] ✅ Ejecutado: SkyView")
 end)
+
+task.wait(0.3)
+
+-- ══════════════════════════════════════════════════════════════
+-- ECLIPSEVAIL SHADERS v15
+-- Midday (default) | Afternoon | Evening
+-- ══════════════════════════════════════════════════════════════
+
+if _G.EclipseShaders then return end
+_G.EclipseShaders = true
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+
+local LP = Players.LocalPlayer
+local PG = LP:WaitForChild("PlayerGui")
+
+local BASE = "https://raw.githubusercontent.com/randomstring0/pshade-ultimate/refs/heads/main/"
+local SHR = BASE .. "shr/"
+local SKY = BASE .. "sky/"
+
+-- ════════════════════════════════
+--   HTTP + LOADSTRING (original method)
+-- ════════════════════════════════
+
+local function httpGet(url)
+    local ok, res = pcall(function() return game:HttpGet(url) end)
+    if not ok then return nil end
+    local ok2, fn = pcall(function() return loadstring(res) end)
+    if ok2 and fn then
+        local ok3, val = pcall(fn)
+        if ok3 then return val end
+    end
+    local ok4, val = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(res)
+    end)
+    if ok4 then return val end
+    return nil
+end
+
+-- ════════════════════════════════
+--   TWEEN HELPER
+-- ════════════════════════════════
+
+local function tw(inst, props, dur)
+    TweenService:Create(inst, TweenInfo.new(dur or 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+end
+
+-- ════════════════════════════════
+--   LIGHTING BACKUP
+-- ════════════════════════════════
+
+local backup = {
+    ClockTime = Lighting.ClockTime,
+    Ambient = Lighting.Ambient,
+    Brightness = Lighting.Brightness,
+    ColorShift_Bottom = Lighting.ColorShift_Bottom,
+    ColorShift_Top = Lighting.ColorShift_Top,
+    EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
+    EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
+    GlobalShadows = Lighting.GlobalShadows,
+    OutdoorAmbient = Lighting.OutdoorAmbient,
+    GeographicLatitude = Lighting.GeographicLatitude,
+    ExposureCompensation = Lighting.ExposureCompensation,
+    FogEnd = Lighting.FogEnd,
+    FogColor = Lighting.FogColor,
+    FogStart = Lighting.FogStart,
+    WaterColor = Terrain.WaterColor,
+    WaterReflectance = Terrain.WaterReflectance,
+    WaterTransparency = Terrain.WaterTransparency,
+    WaterWaveSize = Terrain.WaterWaveSize,
+    WaterWaveSpeed = Terrain.WaterWaveSpeed,
+}
+
+local savedTech
+pcall(function() savedTech = Lighting.Technology end)
+
+-- ════════════════════════════════
+--   GET/CREATE LIGHTING EFFECTS
+-- ════════════════════════════════
+
+local function getOrCreate(class, parent)
+    local obj = parent:FindFirstChildOfClass(class)
+    if not obj then
+        obj = Instance.new(class)
+        obj.Parent = parent
+    end
+    return obj
+end
+
+local colorCor = getOrCreate("ColorCorrectionEffect", Lighting)
+local bloom = getOrCreate("BloomEffect", Lighting)
+local blur = getOrCreate("BlurEffect", Lighting)
+local depth = getOrCreate("DepthOfFieldEffect", Lighting)
+local sky = getOrCreate("Sky", Lighting)
+local atmosphere = getOrCreate("Atmosphere", Lighting)
+local sunRays = getOrCreate("SunRaysEffect", Lighting)
+
+blur.Size = 0
+
+local defaultSky = {
+    bk = sky.SkyboxBk,
+    dn = sky.SkyboxDn,
+    ft = sky.SkyboxFt,
+    lf = sky.SkyboxLf,
+    rt = sky.SkyboxRt,
+    up = sky.SkyboxUp,
+}
+
+local default = {
+    yfbghj = Lighting.Ambient,
+    tgvbyd = Lighting.ClockTime,
+    ghuybhuyhj = Lighting.GeographicLatitude,
+    khnbfth = Lighting.Brightness,
+    hgyghkg = Lighting.ColorShift_Bottom,
+    yfbhjku = Lighting.ColorShift_Top,
+    ygyyfgvhbjytrt = Lighting.EnvironmentDiffuseScale,
+    sdfcddc = Lighting.EnvironmentSpecularScale,
+    hgnujuu7thgr = Lighting.GlobalShadows,
+    hyhnngtf = Lighting.OutdoorAmbient,
+    hdfr7thgr = Lighting.ExposureCompensation,
+    fhnchvhfjsd = colorCor.Brightness,
+    ugtbbjhygt = colorCor.Contrast,
+    tfbghuugbnjhg = colorCor.Saturation,
+    fvrtccvghghj = colorCor.TintColor,
+    jnfdhbnfcvh = bloom.Intensity,
+    fvtyghj = bloom.Size,
+    ygbhnj = bloom.Threshold,
+    njnfg = blur.Size,
+    jdfkd = depth.FarIntensity,
+    fvgsdfg = depth.FocusDistance,
+    sdkvkflv = depth.InFocusRadius,
+    hbjhd = depth.NearIntensity,
+    gyhgtg = 0,
+    ygbhggv = 0,
+    jghbjhgyfd = Color3.new(1,1,1),
+    shdbsnjfc = atmosphere.Density,
+    skdjfkdm = atmosphere.Offset,
+    sjdjncdjf = atmosphere.Color,
+    efjdjfk = atmosphere.Decay,
+    sejfd = atmosphere.Glare,
+    jddfjsd = atmosphere.Haze,
+}
+
+-- ════════════════════════════════
+--   LOAD SHADERS + SKYBOXES
+-- ════════════════════════════════
+
+local shaders = { midday = nil, afternoon = nil, evening = nil }
+local skyboxes = { midday = nil, afternoon = nil, evening = nil }
+local loaded = false
+
+task.spawn(function()
+    shaders.midday = httpGet(SHR .. "midday.json")
+    shaders.afternoon = httpGet(SHR .. "afternoon.json")
+    shaders.evening = httpGet(SHR .. "evening%2Cjson")
+    skyboxes.midday = httpGet(SKY .. "n.json")
+    skyboxes.afternoon = httpGet(SKY .. "a.json")
+    skyboxes.evening = httpGet(SKY .. "e.json")
+    loaded = true
+end)
+
+-- ════════════════════════════════
+--   CURRENT STATE
+-- ════════════════════════════════
+
+local light = nil
+local cussky = nil
+local shaderEnabled = true
+
+-- ════════════════════════════════
+--   RENDER LOOP
+-- ════════════════════════════════
+
+local renderConn = RunService.PreRender:Connect(function()
+    if not shaderEnabled then return end
+    if not light then return end
+    pcall(function()
+        if cussky then
+            sky.SkyboxBk = cussky.bk or defaultSky.bk
+            sky.SkyboxDn = cussky.dn or defaultSky.dn
+            sky.SkyboxFt = cussky.ft or defaultSky.ft
+            sky.SkyboxLf = cussky.lt or cussky.lf or defaultSky.lf
+            sky.SkyboxRt = cussky.rt or defaultSky.rt
+            sky.SkyboxUp = cussky.up or defaultSky.up
+        end
+        colorCor.Brightness = light.fhnchvhfjsd or 0
+        colorCor.Contrast = light.ugtbbjhygt or 0
+        colorCor.Saturation = light.tfbghuugbnjhg or 0
+        colorCor.TintColor = light.fvrtccvghghj or Color3.new(1,1,1)
+        colorCor.Enabled = true
+        bloom.Intensity = light.jnfdhbnfcvh or 0.4
+        bloom.Size = light.fvtyghj or 24
+        bloom.Threshold = light.ygbhnj or 0.95
+        bloom.Enabled = true
+        blur.Size = 0
+        blur.Enabled = false
+        depth.FarIntensity = light.jdfkd or 0
+        depth.FocusDistance = light.fvgsdfg or 0
+        depth.InFocusRadius = light.sdkvkflv or 0
+        depth.NearIntensity = light.hbjhd or 0
+        depth.Enabled = true
+        Lighting.Ambient = light.yfbghj or default.yfbghj
+        Lighting.ClockTime = light.tgvbyd or 14.5
+        Lighting.GeographicLatitude = light.ghuybhuyhj or 0
+        Lighting.Brightness = light.khnbfth or 2
+        Lighting.ColorShift_Bottom = light.hgyghkg or Color3.new(0,0,0)
+        Lighting.ColorShift_Top = light.yfbhjku or Color3.new(0,0,0)
+        Lighting.EnvironmentDiffuseScale = light.ygyyfgvhbjytrt or 0
+        Lighting.EnvironmentSpecularScale = light.sdfcddc or 0
+        if light.hgnujuu7thgr ~= nil then Lighting.GlobalShadows = light.hgnujuu7thgr end
+        Lighting.OutdoorAmbient = light.hyhnngtf or Color3.fromRGB(128,128,128)
+        Lighting.ExposureCompensation = light.hdfr7thgr or 0
+        Lighting.FogEnd = math.huge
+        Lighting.FogColor = Color3.fromRGB(255,255,255)
+        Lighting.FogStart = math.huge
+        atmosphere.Density = light.shdbsnjfc or 0.3
+        atmosphere.Offset = light.skdjfkdm or 0.25
+        atmosphere.Color = light.sjdjncdjf or Color3.fromRGB(199,170,107)
+        atmosphere.Decay = light.efjdjfk or Color3.fromRGB(92,60,13)
+        atmosphere.Glare = light.sejfd or 0
+        atmosphere.Haze = light.jddfjsd or 0
+        local cloud = Terrain:FindFirstChildOfClass("Clouds")
+        if cloud then
+            cloud.Cover = light.gyhgtg or 0
+            cloud.Density = light.ygbhggv or 0
+            cloud.Color = light.jghbjhgyfd or Color3.new(1,1,1)
+        end
+        sunRays.Enabled = true
+        sunRays.Intensity = 0.05
+        sunRays.Spread = 0.8
+        pcall(function() Lighting.Technology = Enum.Technology.ShadowMap end)
+    end)
+end)
+
+-- ════════════════════════════════
+--   APPLY / DISABLE
+-- ════════════════════════════════
+
+local function applyShader(key)
+    if not shaders[key] then
+        local url = key == "evening" and (SHR .. "evening%2Cjson") or (SHR .. key .. ".json")
+        shaders[key] = httpGet(url)
+    end
+    if not skyboxes[key] then
+        local skyKey = key == "midday" and "n" or key == "afternoon" and "a" or "e"
+        skyboxes[key] = httpGet(SKY .. skyKey .. ".json")
+    end
+    light = shaders[key]
+    cussky = skyboxes[key]
+    shaderEnabled = true
+end
+
+local function disableShader()
+    shaderEnabled = false
+    light = nil
+    cussky = nil
+    pcall(function() if savedTech then Lighting.Technology = savedTech end end)
+    Lighting.Ambient = backup.Ambient
+    Lighting.ClockTime = backup.ClockTime
+    Lighting.GeographicLatitude = backup.GeographicLatitude
+    Lighting.Brightness = backup.Brightness
+    Lighting.ColorShift_Bottom = backup.ColorShift_Bottom
+    Lighting.ColorShift_Top = backup.ColorShift_Top
+    Lighting.EnvironmentDiffuseScale = backup.EnvironmentDiffuseScale
+    Lighting.EnvironmentSpecularScale = backup.EnvironmentSpecularScale
+    Lighting.GlobalShadows = backup.GlobalShadows
+    Lighting.OutdoorAmbient = backup.OutdoorAmbient
+    Lighting.ExposureCompensation = backup.ExposureCompensation
+    Lighting.FogEnd = backup.FogEnd
+    Lighting.FogColor = backup.FogColor
+    Lighting.FogStart = backup.FogStart
+    Terrain.WaterColor = backup.WaterColor
+    Terrain.WaterReflectance = backup.WaterReflectance
+    Terrain.WaterTransparency = backup.WaterTransparency
+    Terrain.WaterWaveSize = backup.WaterWaveSize
+    Terrain.WaterWaveSpeed = backup.WaterWaveSpeed
+    sky.SkyboxBk = defaultSky.bk
+    sky.SkyboxDn = defaultSky.dn
+    sky.SkyboxFt = defaultSky.ft
+    sky.SkyboxLf = defaultSky.lf
+    sky.SkyboxRt = defaultSky.rt
+    sky.SkyboxUp = defaultSky.up
+    colorCor.Enabled = false
+    bloom.Enabled = false
+    blur.Enabled = false
+    depth.Enabled = false
+    sunRays.Enabled = false
+    atmosphere.Density = 0
+end
+
+-- ════════════════════════════════
+--   DESTROY OLD GUI
+-- ════════════════════════════════
+
+pcall(function()
+    for _, g in ipairs(PG:GetChildren()) do
+        if g.Name == "EclipseShadersGUI" then g:Destroy() end
+    end
+    for _, g in ipairs(game:GetService("CoreGui"):GetChildren()) do
+        if g.Name == "EclipseShadersGUI" then g:Destroy() end
+    end
+end)
+
+-- ════════════════════════════════
+--   COLORS
+-- ════════════════════════════════
+
+local C = {
+    bg       = Color3.fromRGB(10, 10, 14),
+    accent   = Color3.fromRGB(255, 140, 0),
+    accentDim = Color3.fromRGB(180, 95, 0),
+    text     = Color3.fromRGB(255, 252, 245),
+    textDim  = Color3.fromRGB(150, 145, 135),
+    textMuted = Color3.fromRGB(90, 85, 80),
+    border   = Color3.fromRGB(30, 28, 38),
+    hover    = Color3.fromRGB(20, 18, 28),
+    green    = Color3.fromRGB(40, 200, 70),
+}
+
+-- ════════════════════════════════
+--   GUI
+-- ════════════════════════════════
+
+local GUI_W = 240
+local GUI_H_EXPANDED = 195
+local GUI_H_COLLAPSED = 38
+local RADIUS = 16
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "EclipseShadersGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
+if not ScreenGui.Parent then ScreenGui.Parent = PG end
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, GUI_W, 0, GUI_H_EXPANDED)
+Main.Position = UDim2.new(0.5, -GUI_W / 2, 0.35, 0)
+Main.BackgroundColor3 = C.bg
+Main.BorderSizePixel = 0
+Main.ClipsDescendants = true
+Main.Parent = ScreenGui
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, RADIUS)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = C.border
+stroke.Thickness = 1
+stroke.Transparency = 0.35
+stroke.Parent = Main
+
+local bgImg = Instance.new("ImageLabel")
+bgImg.Size = UDim2.new(1, 0, 1, 0)
+bgImg.BackgroundTransparency = 1
+bgImg.Image = "rbxassetid://133593930106752"
+bgImg.ImageTransparency = 0.55
+bgImg.ScaleType = Enum.ScaleType.Crop
+bgImg.ZIndex = 1
+bgImg.Parent = Main
+
+local overlay = Instance.new("Frame")
+overlay.Size = UDim2.new(1, 0, 1, 0)
+overlay.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+overlay.BackgroundTransparency = 0.18
+overlay.BorderSizePixel = 0
+overlay.ZIndex = 2
+overlay.Parent = Main
+Instance.new("UICorner", overlay).CornerRadius = UDim.new(0, RADIUS)
+
+-- ════════════════════════════════
+--   TITLE BAR
+-- ════════════════════════════════
+
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 36)
+TitleBar.BackgroundTransparency = 1
+TitleBar.ZIndex = 10
+TitleBar.Parent = Main
+
+-- Dot
+local dot = Instance.new("Frame")
+dot.Size = UDim2.new(0, 6, 0, 6)
+dot.Position = UDim2.new(0, 12, 0.5, -3)
+dot.BackgroundColor3 = C.accent
+dot.BorderSizePixel = 0
+dot.ZIndex = 12
+dot.Parent = TitleBar
+Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+
+local dotRing = Instance.new("Frame")
+dotRing.Size = UDim2.new(1, 10, 1, 10)
+dotRing.Position = UDim2.new(0, -5, 0, -5)
+dotRing.BackgroundColor3 = C.accent
+dotRing.BackgroundTransparency = 0.88
+dotRing.BorderSizePixel = 0
+dotRing.ZIndex = 11
+dotRing.Parent = dot
+Instance.new("UICorner", dotRing).CornerRadius = UDim.new(1, 0)
+
+task.spawn(function()
+    while Main.Parent do
+        local p = (math.sin(tick() * 3) + 1) / 2
+        dotRing.BackgroundTransparency = 0.82 + 0.14 * (1 - p)
+        tw(dotRing, {
+            Size = UDim2.new(1, 10 + 6 * p, 1, 10 + 6 * p),
+            Position = UDim2.new(0, -5 - 3 * p, 0, -5 - 3 * p)
+        }, 0.08)
+        task.wait(0.04)
+    end
+end)
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -100, 1, 0)
+Title.Position = UDim2.new(0, 24, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "EclipseVail Shaders  v15"
+Title.TextColor3 = C.accent
+Title.TextSize = 13
+Title.Font = Enum.Font.GothamBlack
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 12
+Title.Parent = TitleBar
+
+local titleGrad = Instance.new("UIGradient")
+titleGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 180, 40)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 100, 0)),
+})
+titleGrad.Parent = Title
+
+task.spawn(function()
+    local o = 0
+    while Main.Parent do
+        o = o + 0.006
+        titleGrad.Offset = Vector2.new(math.sin(o) * 0.5, 0)
+        task.wait(0.03)
+    end
+end)
+
+-- ════════════════════════════════
+--   MINIMIZE BUTTON (-)
+-- ════════════════════════════════
+
+local isMinimized = false
+
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 28, 0, 28)
+MinBtn.Position = UDim2.new(1, -68, 0, 4)
+MinBtn.BackgroundColor3 = Color3.fromRGB(14, 14, 20)
+MinBtn.BackgroundTransparency = 0.5
+MinBtn.Text = "—"
+MinBtn.TextColor3 = C.textDim
+MinBtn.TextSize = 14
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.ZIndex = 12
+MinBtn.BorderSizePixel = 0
+MinBtn.Parent = TitleBar
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
+
+MinBtn.MouseEnter:Connect(function()
+    tw(MinBtn, {BackgroundColor3 = Color3.fromRGB(30, 28, 40), BackgroundTransparency = 0.2}, 0.15)
+end)
+MinBtn.MouseLeave:Connect(function()
+    tw(MinBtn, {BackgroundColor3 = Color3.fromRGB(14, 14, 20), BackgroundTransparency = 0.5}, 0.15)
+end)
+
+MinBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        tw(Main, {Size = UDim2.new(0, GUI_W, 0, GUI_H_COLLAPSED)}, 0.3)
+        MinBtn.Text = "+"
+    else
+        tw(Main, {Size = UDim2.new(0, GUI_W, 0, GUI_H_EXPANDED)}, 0.3)
+        MinBtn.Text = "—"
+    end
+end)
+
+-- ════════════════════════════════
+--   CLOSE BUTTON (X)
+-- ════════════════════════════════
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -34, 0, 4)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 10, 10)
+CloseBtn.BackgroundTransparency = 0.5
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.fromRGB(200, 80, 80)
+CloseBtn.TextSize = 18
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.ZIndex = 12
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Parent = TitleBar
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+
+CloseBtn.MouseEnter:Connect(function()
+    tw(CloseBtn, {BackgroundColor3 = Color3.fromRGB(80, 20, 20), BackgroundTransparency = 0.2}, 0.15)
+end)
+CloseBtn.MouseLeave:Connect(function()
+    tw(CloseBtn, {BackgroundColor3 = Color3.fromRGB(30, 10, 10), BackgroundTransparency = 0.5}, 0.15)
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    disableShader()
+    renderConn:Disconnect()
+    tw(Main, {Size = UDim2.new(0, GUI_W, 0, 0)}, 0.25)
+    task.wait(0.25)
+    ScreenGui:Destroy()
+    _G.EclipseShaders = false
+end)
+
+-- Separator
+local titleSep = Instance.new("Frame")
+titleSep.Size = UDim2.new(1, -20, 0, 1)
+titleSep.Position = UDim2.new(0, 10, 0, 36)
+titleSep.BackgroundColor3 = C.border
+titleSep.BackgroundTransparency = 0.4
+titleSep.BorderSizePixel = 0
+titleSep.ZIndex = 10
+titleSep.Parent = Main
+
+-- ════════════════════════════════
+--   /SHADERS HEADER
+-- ════════════════════════════════
+
+local SectionHeader = Instance.new("TextLabel")
+SectionHeader.Size = UDim2.new(1, -20, 0, 22)
+SectionHeader.Position = UDim2.new(0, 14, 0, 42)
+SectionHeader.BackgroundTransparency = 1
+SectionHeader.Text = "/shaders"
+SectionHeader.TextColor3 = C.textMuted
+SectionHeader.TextSize = 11
+SectionHeader.Font = Enum.Font.GothamBold
+SectionHeader.TextXAlignment = Enum.TextXAlignment.Left
+SectionHeader.ZIndex = 10
+SectionHeader.Parent = Main
+
+-- ════════════════════════════════
+--   SHADER BUTTONS
+-- ════════════════════════════════
+
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Size = UDim2.new(1, -20, 0, 115)
+ButtonContainer.Position = UDim2.new(0, 10, 0, 66)
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.ZIndex = 10
+ButtonContainer.Parent = Main
+
+local btnLayout = Instance.new("UIListLayout")
+btnLayout.Padding = UDim.new(0, 6)
+btnLayout.SortOrder = Enum.SortOrder.LayoutOrder
+btnLayout.Parent = ButtonContainer
+
+local activeBtn = nil
+local activeKey = nil
+local btnRefs = {}
+
+local shaderList = {
+    {name = "Midday", key = "midday"},
+    {name = "Afternoon", key = "afternoon"},
+    {name = "Evening", key = "evening"},
+}
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -20, 0, 16)
+StatusLabel.Position = UDim2.new(0, 14, 1, -20)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "loading shaders..."
+StatusLabel.TextColor3 = C.textMuted
+StatusLabel.TextSize = 9
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.ZIndex = 10
+StatusLabel.Parent = Main
+
+local function selectButton(key)
+    local btnData = btnRefs[key]
+    if not btnData then return end
+
+    if activeBtn and activeBtn ~= btnData.btn then
+        local prev = btnRefs[activeKey]
+        if prev then
+            tw(prev.btn, {BackgroundColor3 = C.hover, BackgroundTransparency = 0.4}, 0.2)
+            tw(prev.lbl, {TextColor3 = C.textDim}, 0.2)
+            tw(prev.dot, {BackgroundColor3 = C.accentDim, BackgroundTransparency = 0.5}, 0.2)
+        end
+    end
+
+    activeBtn = btnData.btn
+    activeKey = key
+    tw(btnData.btn, {BackgroundColor3 = Color3.fromRGB(25, 20, 8), BackgroundTransparency = 0.15}, 0.2)
+    tw(btnData.lbl, {TextColor3 = C.accent}, 0.2)
+    tw(btnData.dot, {BackgroundColor3 = C.accent, BackgroundTransparency = 0}, 0.2)
+
+    applyShader(key)
+
+    local names = {midday = "Midday", afternoon = "Afternoon", evening = "Evening"}
+    StatusLabel.Text = string.lower(names[key] or key) .. " active"
+    StatusLabel.TextColor3 = C.green
+end
+
+for i, sd in ipairs(shaderList) do
+    local btn = Instance.new("Frame")
+    btn.Size = UDim2.new(1, 0, 0, 32)
+    btn.BackgroundColor3 = C.hover
+    btn.BackgroundTransparency = 0.4
+    btn.BorderSizePixel = 0
+    btn.LayoutOrder = i
+    btn.ZIndex = 11
+    btn.Parent = ButtonContainer
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+    local btnDot = Instance.new("Frame")
+    btnDot.Size = UDim2.new(0, 4, 0.6, 0)
+    btnDot.Position = UDim2.new(0, 8, 0.2, 0)
+    btnDot.BackgroundColor3 = C.accentDim
+    btnDot.BackgroundTransparency = 0.5
+    btnDot.BorderSizePixel = 0
+    btnDot.ZIndex = 12
+    btnDot.Parent = btn
+    Instance.new("UICorner", btnDot).CornerRadius = UDim.new(1, 0)
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -24, 1, 0)
+    lbl.Position = UDim2.new(0, 20, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = ".  " .. sd.name
+    lbl.TextColor3 = C.textDim
+    lbl.TextSize = 12
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.ZIndex = 12
+    lbl.Parent = btn
+
+    local click = Instance.new("TextButton")
+    click.Size = UDim2.new(1, 0, 1, 0)
+    click.BackgroundTransparency = 1
+    click.Text = ""
+    click.ZIndex = 13
+    click.BorderSizePixel = 0
+    click.Parent = btn
+
+    btnRefs[sd.key] = {btn = btn, lbl = lbl, dot = btnDot}
+
+    click.MouseEnter:Connect(function()
+        if activeKey ~= sd.key then tw(btn, {BackgroundTransparency = 0.2}, 0.12) end
+    end)
+    click.MouseLeave:Connect(function()
+        if activeKey ~= sd.key then tw(btn, {BackgroundTransparency = 0.4}, 0.12) end
+    end)
+    click.MouseButton1Click:Connect(function()
+        selectButton(sd.key)
+    end)
+end
+
+-- ════════════════════════════════
+--   ENTRANCE + AUTO MIDDAY
+-- ════════════════════════════════
+
+Main.Size = UDim2.new(0, GUI_W, 0, 0)
+task.wait(0.1)
+tw(Main, {Size = UDim2.new(0, GUI_W, 0, GUI_H_EXPANDED)}, 0.35)
+
+task.spawn(function()
+    local timeout = 0
+    while not loaded and timeout < 30 do
+        task.wait(1)
+        timeout = timeout + 1
+    end
+    if loaded and shaders.midday then
+        selectButton("midday")
+    else
+        StatusLabel.Text = "error loading shaders"
+        StatusLabel.TextColor3 = Color3.fromRGB(200, 60, 50)
+    end
+end)
+
+-- ════════════════════════════════
+--   DRAGGING
+-- ════════════════════════════════
+
+local dragging, dragStart, startPos
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        tw(Main, {
+            Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        }, 0.08)
+    end
+end)
+
+-- ════════════════════════════════
+--   RIGHTSHIFT TOGGLE (hide all)
+-- ════════════════════════════════
+
+local guiVisible = true
+UIS.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        guiVisible = not guiVisible
+        if guiVisible then
+            ScreenGui.Enabled = true
+            local targetH = isMinimized and GUI_H_COLLAPSED or GUI_H_EXPANDED
+            Main.Size = UDim2.new(0, GUI_W, 0, 0)
+            tw(Main, {Size = UDim2.new(0, GUI_W, 0, targetH)}, 0.3)
+        else
+            tw(Main, {Size = UDim2.new(0, GUI_W, 0, 0)}, 0.25)
+            task.wait(0.25)
+            ScreenGui.Enabled = false
+        end
+    end
+end)
+
+print("Hi")
+
+
