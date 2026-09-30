@@ -1,26 +1,26 @@
 -- error 1
 loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/Willam124/refs/heads/main/HTM...1....Intro"))()
 
--- Esperar 0.1 segundos
-task.wait(0.1)
+-- Esperar 0.3 segundos
+task.wait(0.3)
 
 -- error 2
 loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/Willam124/refs/heads/main/HTM.."))()
 
--- Esperar 0.1 segundos
-task.wait(0.1)
+-- Esperar 0.3 segundos
+task.wait(0.3)
 
 -- error 3
 loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/Willam124/refs/heads/main/HTM..."))()
 
--- Esperar 0.1 segundos
-task.wait(0.1)
+-- Esperar 0.3 segundos
+task.wait(0.3)
 
 -- error 4
 loadstring(game:HttpGet("https://raw.githubusercontent.com/willamabantochavez-prog/Willam124/refs/heads/main/HTM...."))()
 
--- Esperar 0.1 segundos
-task.wait(0.1)
+-- Esperar 0.3 segundos
+task.wait(0.3)
 
 -- error 5
 --// ==============================
@@ -106,8 +106,8 @@ end
 
 speedConnection = RunService.Heartbeat:Connect(updateSpeed)
 
--- Esperar 3 segundos
-task.wait(0.1)
+-- Esperar 0.3 segundos
+task.wait(0.3)
 
 -- error 6
 
